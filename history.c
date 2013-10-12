@@ -74,7 +74,7 @@ c_fc(char **wp)
 			else {
 				size_t len = strlen(p) + 4;
 				editor = str_nsave(p, len, ATEMP);
-				strlcat(editor, " $_", len);
+				strncat(editor, " $_", len);
 			}
 			break;
 		case 'g': /* non-at&t ksh */

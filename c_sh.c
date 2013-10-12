@@ -817,80 +817,6 @@ c_exec(char **wp)
 	return 0;
 }
 
-static int
-c_mknod(char **wp)
-{
-	int argc, optc, ismkfifo = 0, ret;
-	char **argv;
-	void *set = NULL;
-	mode_t mode = 0, oldmode = 0;
-
-	while ((optc = ksh_getopt(wp, &builtin_opt, "m:")) != -1) {
-		switch (optc) {
-		case 'm':
-			set = setmode(builtin_opt.optarg);
-			if (set == NULL) {
-				bi_errorf("invalid file mode");
-				return 1;
-			}
-			mode = getmode(set, DEFFILEMODE);
-			free(set);
-			break;
-		default:
-			goto usage;
-		}
-	}
-	argv = &wp[builtin_opt.optind];
-	if (argv[0] == NULL)
-		goto usage;
-	for (argc = 0; argv[argc]; argc++)
-		;
-	if (argc == 2 && argv[1][0] == 'p') {
-		ismkfifo = 1;
-		argc--;
-	} else if (argc != 4)
-		goto usage;
-
-	if (set)
-		oldmode = umask(0);
-	else
-		mode = DEFFILEMODE;
-
-	if (ismkfifo)
-		ret = domkfifo(argc, argv, mode);
-	else
-		ret = domknod(argc, argv, mode);
-
-	if (set)
-		umask(oldmode);
-	return ret;
-usage:
-	builtin_argv0 = NULL;
-	bi_errorf("usage: mknod [-m mode] name b|c major minor");
-	bi_errorf("usage: mknod [-m mode] name p");
-	return 1;
-}
-
-static int
-c_suspend(char **wp)
-{
-	if (wp[1] != NULL) {
-		bi_errorf("too many arguments");
-		return 1;
-	}
-	if (Flag(FLOGIN)) {
-		/* Can't suspend an orphaned process group. */
-		pid_t parent = getppid();
-		if (getpgid(parent) == getpgid(0) ||
-		    getsid(parent) != getsid(0)) {
-			bi_errorf("can't suspend a login shell");
-			return 1;
-		}
-	}
-	j_suspend();
-	return 0;
-}
-
 /* dummy function, special case in comexec() */
 int
 c_builtin(char **wp)
@@ -929,7 +855,5 @@ const struct builtin shbuiltins [] = {
 	{"ulimit", c_ulimit},
 	{"+umask", c_umask},
 	{"*=unset", c_unset},
-	{"mknod", c_mknod},
-	{"suspend", c_suspend},
 	{NULL, NULL}
 };

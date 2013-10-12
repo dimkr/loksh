@@ -1165,7 +1165,7 @@ debunk(char *dp, const char *sp, size_t dlen)
 			}
 		*d = '\0';
 	} else if (dp != sp)
-		strlcpy(dp, sp, dlen);
+		strncpy(dp, sp, dlen);
 	return dp;
 }
 

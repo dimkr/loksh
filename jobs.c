@@ -20,6 +20,7 @@
 #include <sys/wait.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <unistd.h>
 #include "tty.h"
 
 /* Order important! */
@@ -143,7 +144,11 @@ static int		kill_job(Job *, int);
 void
 j_init(int mflagset)
 {
+#ifdef CHILD_MAX
 	child_max = CHILD_MAX; /* so syscon() isn't always being called */
+#else
+	child_max = sysconf(_SC_CHILD_MAX);
+#endif
 
 	sigemptyset(&sm_default);
 	sigprocmask(SIG_SETMASK, &sm_default, (sigset_t *) 0);
@@ -184,59 +189,6 @@ j_init(int mflagset)
 #endif /* JOBS */
 		if (Flag(FTALKING))
 			tty_init(true);
-}
-
-/* suspend the shell */
-void
-j_suspend(void)
-{
-	struct sigaction sa, osa;
-
-	/* Restore tty and pgrp. */
-	if (ttypgrp_ok) {
-		tcsetattr(tty_fd, TCSADRAIN, &tty_state);
-		if (restore_ttypgrp >= 0) {
-			if (tcsetpgrp(tty_fd, restore_ttypgrp) < 0) {
-				warningf(false,
-				    "j_suspend: tcsetpgrp() failed: %s",
-				    strerror(errno));
-			} else {
-				if (setpgid(0, restore_ttypgrp) < 0) {
-					warningf(false,
-					    "j_suspend: setpgid() failed: %s",
-					    strerror(errno));
-				}
-			}
-		}
-	}
-
-	/* Suspend the shell. */
-	memset(&sa, 0, sizeof(sa));
-	sigemptyset(&sa.sa_mask);
-	sa.sa_handler = SIG_DFL;
-	sigaction(SIGTSTP, &sa, &osa);
-	kill(0, SIGTSTP);
-
-	/* Back from suspend, reset signals, pgrp and tty. */
-	sigaction(SIGTSTP, &osa, NULL);
-	if (ttypgrp_ok) {
-		if (restore_ttypgrp >= 0) {
-			if (setpgid(0, kshpid) < 0) {
-				warningf(false,
-				    "j_suspend: setpgid() failed: %s",
-				    strerror(errno));
-				ttypgrp_ok = 0;
-			} else {
-				if (tcsetpgrp(tty_fd, kshpid) < 0) {
-					warningf(false,
-					    "j_suspend: tcsetpgrp() failed: %s",
-					    strerror(errno));
-					ttypgrp_ok = 0;
-				}
-			}
-		}
-		tty_init(true);
-	}
 }
 
 /* job cleanup before shell exit */
@@ -1349,17 +1301,17 @@ j_print(Job *j, int how, struct shf *shf)
 		coredumped = 0;
 		switch (p->state) {
 		case PRUNNING:
-			strlcpy(buf, "Running", sizeof buf);
+			strncpy(buf, "Running", sizeof buf);
 			break;
 		case PSTOPPED:
-			strlcpy(buf, sigtraps[WSTOPSIG(p->status)].mess,
+			strncpy(buf, sigtraps[WSTOPSIG(p->status)].mess,
 			    sizeof buf);
 			break;
 		case PEXITED:
 			if (how == JP_SHORT)
 				buf[0] = '\0';
 			else if (WEXITSTATUS(p->status) == 0)
-				strlcpy(buf, "Done", sizeof buf);
+				strncpy(buf, "Done", sizeof buf);
 			else
 				shf_snprintf(buf, sizeof(buf), "Done (%d)",
 				    WEXITSTATUS(p->status));
@@ -1375,7 +1327,7 @@ j_print(Job *j, int how, struct shf *shf)
 			    WTERMSIG(p->status) == SIGPIPE)) {
 				buf[0] = '\0';
 			} else
-				strlcpy(buf, sigtraps[WTERMSIG(p->status)].mess,
+				strncpy(buf, sigtraps[WTERMSIG(p->status)].mess,
 				    sizeof buf);
 			break;
 		}

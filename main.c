@@ -9,6 +9,7 @@
 #include "sh.h"
 #include <sys/stat.h>
 #include <pwd.h>
+#define _PW_NAME_LEN 32 /* see the useradd(8) man page */
 
 extern char **environ;
 
@@ -412,7 +413,7 @@ init_username(void)
 	else
 		p = getlogin();
 
-	strlcpy(username, p != NULL ? p : "?", sizeof username);
+	strncpy(username, p != NULL ? p : "?", sizeof username);
 }
 
 int

@@ -823,7 +823,7 @@ x_load_hist(char **hp)
 	}
 	x_histp = hp;
 	oldsize = x_size_str(xbuf);
-	strlcpy(xbuf, *hp, xend - xbuf);
+	strncpy(xbuf, *hp, xend - xbuf);
 	xbp = xbuf;
 	xep = xcp = xbuf + strlen(xbuf);
 	xlp_valid = false;
@@ -1338,7 +1338,7 @@ kb_add_string(void *func, void *args, char *str)
 	k->ftab = xf;
 	k->args = args ? strdup(args) : NULL;
 
-	strlcpy(k->seq, str, count + 1);
+	strncpy(k->seq, str, count + 1);
 
 	TAILQ_INSERT_TAIL(&kblist, k, entry);
 

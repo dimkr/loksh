@@ -926,10 +926,7 @@ getspec(struct tbl *vp)
 		break;
 	case V_RANDOM:
 		vp->flag &= ~SPECIAL;
-		if (use_rand)
-			setint(vp, (long) (rand() & 0x7fff));
-		else
-			setint(vp, (long) (arc4random() & 0x7fff));
+		setint(vp, (long) (rand() & 0x7fff));
 		vp->flag |= SPECIAL;
 		break;
 #ifdef HISTORY
@@ -1130,7 +1127,7 @@ arraysearch(struct tbl *vp, int val)
 	} else
 		new = (struct tbl *)alloc(sizeof(struct tbl) + namelen,
 		    vp->areap);
-	strlcpy(new->name, vp->name, namelen);
+	strncpy(new->name, vp->name, namelen);
 	new->flag = vp->flag & ~(ALLOC|DEFINED|ISSET|SPECIAL);
 	new->type = vp->type;
 	new->areap = vp->areap;
