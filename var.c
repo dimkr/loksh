@@ -865,12 +865,6 @@ makenv(void)
 }
 
 /*
- * Someone has set the srand() value, therefore from now on
- * we return values from rand() instead of arc4random()
- */
-int use_rand = 0;
-
-/*
  * Called after a fork in parent to bump the random number generator.
  * Done to ensure children will not get the same random number sequence
  * if the parent doesn't use $RANDOM.
@@ -878,8 +872,7 @@ int use_rand = 0;
 void
 change_random(void)
 {
-	if (use_rand)
-		rand();
+	rand();
 }
 
 /*
@@ -1027,7 +1020,6 @@ setspec(struct tbl *vp)
 	case V_RANDOM:
 		vp->flag &= ~SPECIAL;
 		srand((unsigned int)intval(vp));
-		use_rand = 1;
 		vp->flag |= SPECIAL;
 		break;
 	case V_SECONDS:

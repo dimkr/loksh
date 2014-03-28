@@ -658,6 +658,7 @@ newenv(int type)
 	ep->oenv = e;
 	ep->temps = NULL;
 	e = ep;
+	srand((unsigned int) time(NULL));
 }
 
 void
