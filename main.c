@@ -42,7 +42,6 @@ static const char *initcoms [] = {
 	  "type=whence -v",
 #ifdef JOBS
 	  "stop=kill -STOP",
-	  "suspend=kill -STOP $$",
 #endif
 	  "autoload=typeset -fu",
 	  "functions=typeset -f",
