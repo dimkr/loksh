@@ -78,7 +78,7 @@ str_save(const char *s, Area *ap)
 		return NULL;
 	len = strlen(s)+1;
 	p = alloc(len, ap);
-	strncpy(p, s, len);
+	strlcpy(p, s, len);
 	return (p);
 }
 
@@ -332,10 +332,10 @@ parse_args(char **argv,
 		char *p, *q;
 
 		/* see cmd_opts[] declaration */
-		strncpy(cmd_opts, "o:", sizeof cmd_opts);
+		strlcpy(cmd_opts, "o:", sizeof cmd_opts);
 		p = cmd_opts + strlen(cmd_opts);
 		/* see set_opts[] declaration */
-		strncpy(set_opts, "A:o;s", sizeof set_opts);
+		strlcpy(set_opts, "A:o;s", sizeof set_opts);
 		q = set_opts + strlen(set_opts);
 		for (i = 0; i < NELEM(options); i++) {
 			if (options[i].c) {

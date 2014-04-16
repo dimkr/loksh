@@ -1,21 +1,37 @@
-#	$OpenBSD: Makefile,v 1.28 2012/04/30 03:51:29 djm Exp $
+CC ?= cc
+CFLAGS ?= -Wall -pedantic
+PKG_CONFIG ?= pkg-config
+CFLAGS += -I. $(shell $(PKG_CONFIG) --cflags lobsder)
+LDFLAGS ?=
+LIBS = $(shell $(PKG_CONFIG) --libs lobsder)
+DESTDIR ?= /
+PREFIX ?= /usr
+BIN_DIR ?= $(PREFIX)/bin
+MAN_DIR ?= $(PREFIX)/share/man
+DOC_DIR ?= $(PREFIX)/share/doc/loksh
+OBJECTS = alloc.o c_ksh.o c_sh.o c_test.o c_ulimit.o edit.o emacs.o eval.o \
+          exec.o expr.o history.o io.o jobs.o lex.o mail.o main.o misc.o \
+          path.o shf.o syn.o table.o trap.o tree.o tty.o var.o version.o vi.o
+HEADERS = c_test.h charclass.h config.h edit.h expand.h ksh_limval.h lex.h \
+          proto.h sh.h shf.h table.h tree.h tty.h
 
-PROG=	ksh
-SRCS=	alloc.c c_ksh.c c_sh.c c_test.c c_ulimit.c edit.c emacs.c eval.c \
-	exec.c expr.c history.c io.c jobs.c lex.c mail.c main.c misc.c \
-	path.c shf.c syn.c table.c trap.c tree.c tty.c var.c version.c \
-	vi.c
+all: ksh
 
-DEFS=	-Wall
-CFLAGS+=${DEFS} -I. -I${.CURDIR} -I${.CURDIR}/../../lib/libc/gen
-MAN=	ksh.1 sh.1
+%.o: %.c $(HEADERS)
+	$(CC) -c -o $@ $< $(CFLAGS)
 
-LINKS=	${BINDIR}/ksh ${BINDIR}/rksh
-LINKS+=	${BINDIR}/ksh ${BINDIR}/sh
-MLINKS=	ksh.1 rksh.1
+ksh: $(OBJECTS)
+	$(CC) -o $@ $^ $(LDFLAGS) $(LIBS)
 
-check test:
-	/usr/bin/perl ${.CURDIR}/tests/th -s ${.CURDIR}/tests -p ./ksh -C \
-	    pdksh,sh,ksh,posix,posix-upu
+clean:
+	rm -f ksh *.o
 
-.include <bsd.prog.mk>
+install: all
+	install -v -D -m 755 ksh $(DESTDIR)/$(BIN_DIR)/ksh
+	install -v -D -m 644 ksh.1 $(DESTDIR)/$(MAN_DIR)/man1/ksh.1
+	install -v -D -m 644 README $(DESTDIR)/$(DOC_DIR)/README
+	install -v -m 644 README.upstream $(DESTDIR)/$(DOC_DIR)/README.upstream
+	install -v -m 644 ChangeLog $(DESTDIR)/$(DOC_DIR)/ChangeLog
+	install -v -m 644 ChangeLog.0 $(DESTDIR)/$(DOC_DIR)/ChangeLog.0
+	install -v -m 644 CONTRIBUTORS $(DESTDIR)/$(DOC_DIR)/CONTRIBUTORS
+	install -v -m 644 LEGAL $(DESTDIR)/$(DOC_DIR)/LEGAL

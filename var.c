@@ -865,6 +865,12 @@ makenv(void)
 }
 
 /*
+ * Someone has set the srand() value, therefore from now on
+ * we return values from rand() instead of arc4random()
+ */
+int use_rand = 0;
+
+/*
  * Called after a fork in parent to bump the random number generator.
  * Done to ensure children will not get the same random number sequence
  * if the parent doesn't use $RANDOM.
@@ -872,7 +878,8 @@ makenv(void)
 void
 change_random(void)
 {
-	rand();
+	if (use_rand)
+		rand();
 }
 
 /*
@@ -919,7 +926,10 @@ getspec(struct tbl *vp)
 		break;
 	case V_RANDOM:
 		vp->flag &= ~SPECIAL;
-		setint(vp, (long) (rand() & 0x7fff));
+		if (use_rand)
+			setint(vp, (long) (rand() & 0x7fff));
+		else
+			setint(vp, (long) (arc4random() & 0x7fff));
 		vp->flag |= SPECIAL;
 		break;
 #ifdef HISTORY
@@ -1020,6 +1030,7 @@ setspec(struct tbl *vp)
 	case V_RANDOM:
 		vp->flag &= ~SPECIAL;
 		srand((unsigned int)intval(vp));
+		use_rand = 1;
 		vp->flag |= SPECIAL;
 		break;
 	case V_SECONDS:
@@ -1119,7 +1130,7 @@ arraysearch(struct tbl *vp, int val)
 	} else
 		new = (struct tbl *)alloc(sizeof(struct tbl) + namelen,
 		    vp->areap);
-	strncpy(new->name, vp->name, namelen);
+	strlcpy(new->name, vp->name, namelen);
 	new->flag = vp->flag & ~(ALLOC|DEFINED|ISSET|SPECIAL);
 	new->type = vp->type;
 	new->areap = vp->areap;

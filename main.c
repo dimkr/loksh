@@ -414,7 +414,7 @@ init_username(void)
 	else
 		p = getlogin();
 
-	strncpy(username, p != NULL ? p : "?", sizeof username);
+	strlcpy(username, p != NULL ? p : "?", sizeof username);
 }
 
 int
@@ -658,7 +658,6 @@ newenv(int type)
 	ep->oenv = e;
 	ep->temps = NULL;
 	e = ep;
-	srand((unsigned int) time(NULL));
 }
 
 void
