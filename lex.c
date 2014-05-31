@@ -1,4 +1,4 @@
-/*	$OpenBSD: lex.c,v 1.47 2013/03/03 19:11:34 guenther Exp $	*/
+/*	$OpenBSD: lex.c,v 1.49 2013/12/17 16:37:06 deraadt Exp $	*/
 
 /*
  * lexical analysis and source input
@@ -65,6 +65,7 @@ static Lex_state *push_state_(State_info *, Lex_state *);
 static Lex_state *pop_state_(State_info *, Lex_state *);
 static char	*special_prompt_expand(char *);
 static int	dopprompt(const char *, int, const char **, int);
+int		promptlen(const char *cp, const char **spp);
 
 static int backslash_skip;
 static int ignore_backslash_newline;
@@ -985,7 +986,7 @@ getsc__(void)
 				source->flags |= s->flags & SF_ALIAS;
 				s = source;
 			} else if (*s->u.tblp->val.s &&
-			    isspace(strchr(s->u.tblp->val.s, 0)[-1])) {
+			    isspace((unsigned char)strchr(s->u.tblp->val.s, 0)[-1])) {
 				source = s = s->next;	/* pop source stack */
 				/* Note that this alias ended with a space,
 				 * enabling alias expansion on the following
@@ -1234,7 +1235,7 @@ dopprompt(const char *sp, int ntruncate, const char **spp, int doprint)
 					    "\\%c", *cp);
 					break;
 				}
-				strlcpy(tmpbuf, cp + 2, sizeof tmpbuf);
+				strncpy(tmpbuf, cp + 2, sizeof tmpbuf);
 				p = strchr(tmpbuf, '}');
 				if (p)
 					*p = '\0';
@@ -1265,7 +1266,7 @@ dopprompt(const char *sp, int ntruncate, const char **spp, int doprint)
 				if (p)
 					p = basename(p);
 				if (p)
-					strlcpy(strbuf, p, sizeof strbuf);
+					strncpy(strbuf, p, sizeof strbuf);
 				break;
 			case 'n':	/* '\' 'n' newline */
 				strbuf[0] = '\n';
@@ -1284,7 +1285,7 @@ dopprompt(const char *sp, int ntruncate, const char **spp, int doprint)
 				sp = cp + 1;
 				break;
 			case 's':	/* '\' 's' basename $0 */
-				strlcpy(strbuf, kshname, sizeof strbuf);
+				strncpy(strbuf, kshname, sizeof strbuf);
 				break;
 			case 't':	/* '\' 't' 24 hour HH:MM:SS */
 				time(&t);
@@ -1307,7 +1308,7 @@ dopprompt(const char *sp, int ntruncate, const char **spp, int doprint)
 				strftime(strbuf, sizeof strbuf, "%R", tm);
 				break;
 			case 'u':	/* '\' 'u' username */
-				strlcpy(strbuf, username, sizeof strbuf);
+				strncpy(strbuf, username, sizeof strbuf);
 				break;
 			case 'v':	/* '\' 'v' version (short) */
 				p = strchr(ksh_version, ' ');
@@ -1315,20 +1316,20 @@ dopprompt(const char *sp, int ntruncate, const char **spp, int doprint)
 					p = strchr(p + 1, ' ');
 				if (p) {
 					p++;
-					strlcpy(strbuf, p, sizeof strbuf);
+					strncpy(strbuf, p, sizeof strbuf);
 					p = strchr(strbuf, ' ');
 					if (p)
 						*p = '\0';
 				}
 				break;
 			case 'V':	/* '\' 'V' version (long) */
-				strlcpy(strbuf, ksh_version, sizeof strbuf);
+				strncpy(strbuf, ksh_version, sizeof strbuf);
 				break;
 			case 'w':	/* '\' 'w' cwd */
 				p = str_val(global("PWD"));
 				n = strlen(str_val(global("HOME")));
 				if (strcmp(p, "/") == 0) {
-					strlcpy(strbuf, p, sizeof strbuf);
+					strncpy(strbuf, p, sizeof strbuf);
 				} else if (strcmp(p, str_val(global("HOME"))) == 0) {
 					strbuf[0] = '~';
 					strbuf[1] = '\0';
@@ -1337,7 +1338,7 @@ dopprompt(const char *sp, int ntruncate, const char **spp, int doprint)
 					snprintf(strbuf, sizeof strbuf, "~/%s",
 					    str_val(global("PWD")) + n + 1);
 				} else
-					strlcpy(strbuf, p, sizeof strbuf);
+					strncpy(strbuf, p, sizeof strbuf);
 				break;
 			case 'W':	/* '\' 'W' basename(cwd) */
 				p = str_val(global("PWD"));
@@ -1345,7 +1346,7 @@ dopprompt(const char *sp, int ntruncate, const char **spp, int doprint)
 					strbuf[0] = '~';
 					strbuf[1] = '\0';
 				} else
-					strlcpy(strbuf, basename(p), sizeof strbuf);
+					strncpy(strbuf, basename(p), sizeof strbuf);
 				break;
 			case '!':	/* '\' '!' history line number */
 				snprintf(strbuf, sizeof strbuf, "%d",

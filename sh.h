@@ -1,4 +1,4 @@
-/*	$OpenBSD: sh.h,v 1.31 2012/09/10 01:25:30 tedu Exp $	*/
+/*	$OpenBSD: sh.h,v 1.33 2013/12/18 13:53:12 millert Exp $	*/
 
 /*
  * Public Domain Bourne/Korn shell
@@ -16,7 +16,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
-#include <time.h>
 #include <unistd.h>
 #include <string.h>
 #include <stdarg.h>
@@ -69,7 +68,6 @@ typedef INT32 Tflag;
 
 #define	LINE	2048		/* input line size */
 #define	PATH	1024		/* pathname size (todo: PATH_MAX/pathconf()) */
-#define ARRAYMAX (10*1024-1)	/* max array index */
 
 EXTERN	const char *kshname;	/* $0 */
 EXTERN	pid_t	kshpid;		/* $$, shell pid */
@@ -362,7 +360,7 @@ struct coproc {
 	int	write;		/* pipe to co-process's stdin */
 	Coproc_id id;		/* id of current output pipe */
 	int	njobs;		/* number of live jobs using output pipe */
-	void    *job;           /* 0 or job of co-process using input pipe */
+	void	*job;		/* 0 or job of co-process using input pipe */
 };
 EXTERN struct coproc coproc;
 

@@ -1,8 +1,8 @@
-.\"	$OpenBSD: ksh.1,v 1.147 2013/06/13 19:43:09 millert Exp $
+.\"	$OpenBSD: ksh.1,v 1.152 2014/02/12 16:28:13 schwarze Exp $
 .\"
 .\"	Public Domain
 .\"
-.Dd $Mdocdate: June 13 2013 $
+.Dd $Mdocdate: February 12 2014 $
 .Dt KSH 1
 .Os
 .Sh NAME
@@ -849,7 +849,6 @@ login='exec login'
 nohup='nohup '
 r='fc -e -'
 stop='kill -STOP'
-suspend='kill -STOP $$'
 type='whence -v'
 .Ed
 .Pp
@@ -1039,7 +1038,6 @@ form
 where
 .Ar expr
 is an arithmetic expression.
-Array indices are currently limited to the range 0 through 10239, inclusive.
 Parameter substitutions take the form
 .Pf $ Ns Ar name ,
 .Pf ${ Ns Ar name Ns } ,
@@ -1766,11 +1764,8 @@ the string
 or
 .Dq gmacs ,
 the
-.Xr vi ,
-.Xr emacs ,
-or
-.Xr gmacs
-(Gosling emacs) editing mode is enabled, respectively.
+.Xr vi 1 ,
+emacs, or gmacs (Gosling emacs) editing mode is enabled, respectively.
 See also the
 .Ev EDITOR
 parameter, above.
@@ -2744,8 +2739,8 @@ Additional
 regular commands
 .Pp
 .Ic \&[ , echo , let , mknod ,
-.Ic print , pwd , test , ulimit ,
-.Ic whence
+.Ic print , pwd , suspend , test ,
+.Ic ulimit , whence
 .Pp
 In the future, the additional
 .Nm
@@ -3818,6 +3813,16 @@ etc. are renamed to
 etc.
 .Ar number
 defaults to 1.
+.Pp
+.It Ic suspend
+Stops the shell as if it had received the suspend character from
+the terminal.
+It is not possible to suspend a login shell unless the parent process
+is a member of the same terminal session but is a member of a different
+process group.
+As a general rule, if the shell was started by another shell or via
+.Xr su 1 ,
+it can be suspended.
 .Pp
 .It Ic test Ar expression
 .It Ic \&[ Ar expression Ic \&]
@@ -5583,35 +5588,49 @@ Privileged shell profile.
 .Rs
 .%A Morris Bolsky
 .%A David Korn
-.%T "The KornShell Command and Programming Language"
-.%D 1983
-.%O "ISBN 0-13-516972-0"
+.%B The KornShell Command and Programming Language, 2nd Edition
+.%D 1995
+.%I Prentice Hall
+.%O ISBN 0131827006
 .Re
 .Rs
 .%A Stephen G. Kochan
 .%A Patrick H. Wood
-.%T "UNIX Shell Programming"
-.%O "Hayden"
+.%B UNIX Shell Programming, 3rd Edition
+.%D 2003
+.%I Sams
+.%O ISBN 0672324903
 .Re
 .Rs
-.%A "IEEE Inc."
-.%T "IEEE Standard for Information Technology \- Portable Operating " \
-    "System Interface (POSIX) \- Part 2: Shell and Utilities"
+.%A IEEE Inc.
 .%D 1993
-.%O "ISBN 1-55937-266-9"
+.%O ISBN 1-55937-266-9
+.%T IEEE Standard for Information Technology \- Portable Operating \
+    System Interface (POSIX) \- Part 2: Shell and Utilities
 .Re
 .Sh VERSION
 This page documents version @(#)PD KSH v5.2.14 99/07/13.2 of the public
 domain Korn shell.
 .Sh AUTHORS
+.An -nosplit
 This shell is based on the public domain 7th edition Bourne shell clone by
-Charles Forsyth and parts of the BRL shell by Doug A. Gwyn, Doug Kingston,
-Ron Natalie, Arnold Robbins, Lou Salkind, and others.
+.An Charles Forsyth
+and parts of the BRL shell by
+.An Doug A. Gwyn ,
+.An Doug Kingston ,
+.An Ron Natalie ,
+.An Arnold Robbins ,
+.An Lou Salkind ,
+and others.
 The first release of
 .Nm pdksh
-was created by Eric Gisin, and it was subsequently maintained by John R.\&
-MacMillan (change!john@sq.sq.com), Simon J. Gerraty (sjg@zen.void.oz.au),
-and Michael Rendell (michael@cs.mun.ca).
+was created by
+.An Eric Gisin ,
+and it was subsequently maintained by
+.An John R. MacMillan Aq Mt change!john@sq.sq.com ,
+.An Simon J. Gerraty Aq Mt sjg@zen.void.oz.au ,
+and
+.An Michael Rendell Aq Mt michael@cs.mun.ca .
 The
 .Pa CONTRIBUTORS
 file in the source distribution contains a more complete list of people and

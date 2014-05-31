@@ -1,4 +1,4 @@
-/*	$OpenBSD: jobs.c,v 1.39 2009/12/13 04:36:48 deraadt Exp $	*/
+/*	$OpenBSD: jobs.c,v 1.40 2013/09/04 15:49:18 millert Exp $	*/
 
 /*
  * Process and job control
@@ -20,7 +20,6 @@
 #include <sys/wait.h>
 #include <sys/time.h>
 #include <sys/resource.h>
-#include <unistd.h>
 #include "tty.h"
 
 /* Order important! */
@@ -1301,17 +1300,17 @@ j_print(Job *j, int how, struct shf *shf)
 		coredumped = 0;
 		switch (p->state) {
 		case PRUNNING:
-			strlcpy(buf, "Running", sizeof buf);
+			strncpy(buf, "Running", sizeof buf);
 			break;
 		case PSTOPPED:
-			strlcpy(buf, sigtraps[WSTOPSIG(p->status)].mess,
+			strncpy(buf, sigtraps[WSTOPSIG(p->status)].mess,
 			    sizeof buf);
 			break;
 		case PEXITED:
 			if (how == JP_SHORT)
 				buf[0] = '\0';
 			else if (WEXITSTATUS(p->status) == 0)
-				strlcpy(buf, "Done", sizeof buf);
+				strncpy(buf, "Done", sizeof buf);
 			else
 				shf_snprintf(buf, sizeof(buf), "Done (%d)",
 				    WEXITSTATUS(p->status));
@@ -1327,7 +1326,7 @@ j_print(Job *j, int how, struct shf *shf)
 			    WTERMSIG(p->status) == SIGPIPE)) {
 				buf[0] = '\0';
 			} else
-				strlcpy(buf, sigtraps[WTERMSIG(p->status)].mess,
+				strncpy(buf, sigtraps[WTERMSIG(p->status)].mess,
 				    sizeof buf);
 			break;
 		}

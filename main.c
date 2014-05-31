@@ -1,4 +1,4 @@
-/*	$OpenBSD: main.c,v 1.52 2013/06/15 17:25:19 millert Exp $	*/
+/*	$OpenBSD: main.c,v 1.54 2013/11/28 10:33:37 sobrado Exp $	*/
 
 /*
  * startup, main loop, environments and error handling
@@ -9,7 +9,10 @@
 #include "sh.h"
 #include <sys/stat.h>
 #include <pwd.h>
-#define _PW_NAME_LEN 32 /* see the useradd(8) man page */
+
+#ifndef _PW_NAME_LEN
+#	define _PW_NAME_LEN 32 /* see the useradd(8) man page */
+#endif
 
 extern char **environ;
 
@@ -69,7 +72,7 @@ char username[_PW_NAME_LEN + 1];
 
 /* The shell uses its own variation on argv, to build variables like
  * $0 and $@.
- * If we need to alter argv, allocate a new array first since 
+ * If we need to alter argv, allocate a new array first since
  * modifying the original argv will modify ps output.
  */
 static char **
@@ -413,7 +416,7 @@ init_username(void)
 	else
 		p = getlogin();
 
-	strlcpy(username, p != NULL ? p : "?", sizeof username);
+	strncpy(username, p != NULL ? p : "?", sizeof username);
 }
 
 int

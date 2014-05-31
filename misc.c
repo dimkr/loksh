@@ -1,4 +1,4 @@
-/*	$OpenBSD: misc.c,v 1.37 2009/04/19 20:34:05 sthen Exp $	*/
+/*	$OpenBSD: misc.c,v 1.38 2013/11/28 10:33:37 sobrado Exp $	*/
 
 /*
  * Miscellaneous functions
@@ -78,7 +78,7 @@ str_save(const char *s, Area *ap)
 		return NULL;
 	len = strlen(s)+1;
 	p = alloc(len, ap);
-	strlcpy(p, s, len);
+	strncpy(p, s, len);
 	return (p);
 }
 
@@ -332,10 +332,10 @@ parse_args(char **argv,
 		char *p, *q;
 
 		/* see cmd_opts[] declaration */
-		strlcpy(cmd_opts, "o:", sizeof cmd_opts);
+		strncpy(cmd_opts, "o:", sizeof cmd_opts);
 		p = cmd_opts + strlen(cmd_opts);
 		/* see set_opts[] declaration */
-		strlcpy(set_opts, "A:o;s", sizeof set_opts);
+		strncpy(set_opts, "A:o;s", sizeof set_opts);
 		q = set_opts + strlen(set_opts);
 		for (i = 0; i < NELEM(options); i++) {
 			if (options[i].c) {
@@ -711,7 +711,7 @@ posix_cclass(const unsigned char *pattern, int test, const unsigned char **ep)
 	const unsigned char *colon;
 	size_t len;
 	int rval = 0;
-	 
+
 	if ((colon = strchr(pattern, ':')) == NULL || colon[1] != MAGIC) {
 		*ep = pattern - 2;
 		return -1;

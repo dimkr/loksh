@@ -1,9 +1,7 @@
 CC ?= cc
 CFLAGS ?= -Wall -pedantic
-PKG_CONFIG ?= pkg-config
-CFLAGS += -I. $(shell $(PKG_CONFIG) --cflags lobsder)
+CFLAGS += -I.
 LDFLAGS ?=
-LIBS = $(shell $(PKG_CONFIG) --libs lobsder)
 DESTDIR ?= /
 PREFIX ?= /usr
 BIN_DIR ?= $(PREFIX)/bin
@@ -21,7 +19,7 @@ all: ksh
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 ksh: $(OBJECTS)
-	$(CC) -o $@ $^ $(LDFLAGS) $(LIBS)
+	$(CC) -o $@ $^ $(LDFLAGS)
 
 clean:
 	rm -f ksh *.o

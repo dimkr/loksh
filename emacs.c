@@ -1,4 +1,4 @@
-/*	$OpenBSD: emacs.c,v 1.46 2012/06/10 10:15:01 mpi Exp $	*/
+/*	$OpenBSD: emacs.c,v 1.48 2013/12/17 16:37:05 deraadt Exp $	*/
 
 /*
  *  Emacs-like command line editing and history
@@ -47,7 +47,9 @@ struct	x_ftab {
 
 /* Separator for completion */
 #define	is_cfs(c)	(c == ' ' || c == '\t' || c == '"' || c == '\'')
-#define	is_mfs(c)	(!(isalnum(c) || c == '_' || c == '$'))  /* Separator for motion */
+
+/* Separator for motion */
+#define	is_mfs(c)	(!(isalnum((unsigned char)c) || c == '_' || c == '$'))
 
 /* Arguments for do_complete()
  * 0 = enumerate  M-= complete as much as possible and then list
@@ -75,8 +77,8 @@ struct kb_list			kblist = TAILQ_HEAD_INITIALIZER(kblist);
 /*
  * The following are used for my horizontal scrolling stuff
  */
-static char   *xbuf;		/* beg input buffer */
-static char   *xend;		/* end input buffer */
+static char    *xbuf;		/* beg input buffer */
+static char    *xend;		/* end input buffer */
 static char    *xcp;		/* current position */
 static char    *xep;		/* current end */
 static char    *xbp;		/* start of visible portion of input buffer */
@@ -104,29 +106,29 @@ static	char   **x_histp;	/* history position */
 static	int	x_nextcmd;	/* for newline-and-next */
 static	char	*xmp;		/* mark pointer */
 #define	KILLSIZE	20
-static	char    *killstack[KILLSIZE];
+static	char	*killstack[KILLSIZE];
 static	int	killsp, killtp;
 static	int	x_literal_set;
 static	int	x_arg_set;
-static	char    *macro_args;
+static	char	*macro_args;
 static	int	prompt_skip;
 static	int	prompt_redraw;
 
-static int      x_ins(char *);
-static void     x_delete(int, int);
+static int	x_ins(char *);
+static void	x_delete(int, int);
 static int	x_bword(void);
 static int	x_fword(void);
-static void     x_goto(char *);
-static void     x_bs(int);
-static int      x_size_str(char *);
-static int      x_size(int);
-static void     x_zots(char *);
-static void     x_zotc(int);
-static void     x_load_hist(char **);
-static int      x_search(char *, int, int);
-static int      x_match(char *, char *);
+static void	x_goto(char *);
+static void	x_bs(int);
+static int	x_size_str(char *);
+static int	x_size(int);
+static void	x_zots(char *);
+static void	x_zotc(int);
+static void	x_load_hist(char **);
+static int	x_search(char *, int, int);
+static int	x_match(char *, char *);
 static void	x_redraw(int);
-static void     x_push(int);
+static void	x_push(int);
 static void	x_adjust(void);
 static void	x_e_ungetc(int);
 static int	x_e_getc(void);
@@ -345,7 +347,7 @@ x_emacs(char *buf, size_t len)
 		if (submatch == 1 && kmatch) {
 			if (kmatch->ftab->xf_func == x_ins_string &&
 			    kmatch->args && !macro_args) {
-			    	/* treat macro string as input */
+				/* treat macro string as input */
 				macro_args = kmatch->args;
 				ret = KSTD;
 			} else
@@ -529,7 +531,7 @@ x_delete(int nc, int push)
 	j = 0;
 	i = nc;
 	while (i--) {
-		j += x_size(*cp++);
+		j += x_size((unsigned char)*cp++);
 	}
 	memmove(xcp, xcp+nc, xep - xcp + 1);	/* Copies the null */
 	x_adj_ok = 0;			/* don't redraw */
@@ -641,10 +643,10 @@ x_goto(char *cp)
 		x_adjust();
 	} else if (cp < xcp) {		/* move back */
 		while (cp < xcp)
-			x_bs(*--xcp);
+			x_bs((unsigned char)*--xcp);
 	} else if (cp > xcp) {		/* move forward */
 		while (cp > xcp)
-			x_zotc(*xcp++);
+			x_zotc((unsigned char)*xcp++);
 	}
 }
 
@@ -823,7 +825,7 @@ x_load_hist(char **hp)
 	}
 	x_histp = hp;
 	oldsize = x_size_str(xbuf);
-	strlcpy(xbuf, *hp, xend - xbuf);
+	strncpy(xbuf, *hp, xend - xbuf);
 	xbp = xbuf;
 	xep = xcp = xbuf + strlen(xbuf);
 	xlp_valid = false;
@@ -1338,7 +1340,7 @@ kb_add_string(void *func, void *args, char *str)
 	k->ftab = xf;
 	k->args = args ? strdup(args) : NULL;
 
-	strlcpy(k->seq, str, count + 1);
+	strncpy(k->seq, str, count + 1);
 
 	TAILQ_INSERT_TAIL(&kblist, k, entry);
 
@@ -2097,11 +2099,11 @@ x_fold_case(int c)
 		 */
 		if (cp != xep) {
 			if (c == 'L') {		/* lowercase */
-				if (isupper(*cp))
-					*cp = tolower(*cp);
+				if (isupper((unsigned char)*cp))
+					*cp = tolower((unsigned char)*cp);
 			} else {		/* uppercase, capitalize */
-				if (islower(*cp))
-					*cp = toupper(*cp);
+				if (islower((unsigned char)*cp))
+					*cp = toupper((unsigned char)*cp);
 			}
 			cp++;
 		}
@@ -2110,11 +2112,11 @@ x_fold_case(int c)
 		 */
 		while (cp != xep && !is_mfs(*cp)) {
 			if (c == 'U') {		/* uppercase */
-				if (islower(*cp))
-					*cp = toupper(*cp);
+				if (islower((unsigned char)*cp))
+					*cp = toupper((unsigned char)*cp);
 			} else {		/* lowercase, capitalize */
-				if (isupper(*cp))
-					*cp = tolower(*cp);
+				if (isupper((unsigned char)*cp))
+					*cp = tolower((unsigned char)*cp);
 			}
 			cp++;
 		}
@@ -2151,7 +2153,7 @@ x_lastcp(void)
 
 	if (!xlp_valid) {
 		for (i = 0, rcp = xbp; rcp < xep && i < x_displen; rcp++)
-			i += x_size(*rcp);
+			i += x_size((unsigned char)*rcp);
 		xlp = rcp;
 	}
 	xlp_valid = true;

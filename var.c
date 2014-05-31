@@ -1,10 +1,12 @@
-/*	$OpenBSD: var.c,v 1.35 2013/04/05 01:31:30 tedu Exp $	*/
+/*	$OpenBSD: var.c,v 1.38 2013/12/20 17:53:09 zhuk Exp $	*/
 
 #include "sh.h"
 #include <time.h>
 #include "ksh_limval.h"
 #include <sys/stat.h>
 #include <ctype.h>
+#include <limits.h>
+#include <stdlib.h>
 
 /*
  * Variables
@@ -142,7 +144,7 @@ array_index_calc(const char *n, bool *arrayp, int *valp)
 		afree(tmp, ATEMP);
 		n = str_nsave(n, p - n, ATEMP);
 		evaluate(sub, &rval, KSH_UNWIND_ERROR, true);
-		if (rval < 0 || rval > ARRAYMAX)
+		if (rval < 0 || rval > INT_MAX)
 			errorf("%s: subscript %ld out of range", n, rval);
 		*valp = rval;
 		afree(sub, ATEMP);
@@ -158,6 +160,7 @@ global(const char *n)
 {
 	struct block *l = e->loc;
 	struct tbl *vp;
+	long	 num;
 	int c;
 	unsigned int h;
 	bool	 array;
@@ -166,7 +169,7 @@ global(const char *n)
 	/* Check to see if this is an array */
 	n = array_index_calc(n, &array, &val);
 	h = hash(n);
-	c = n[0];
+	c = (unsigned char)n[0];
 	if (!letter(c)) {
 		if (array)
 			errorf("bad substitution");
@@ -176,11 +179,11 @@ global(const char *n)
 		vp->areap = ATEMP;
 		*vp->name = c;
 		if (digit(c)) {
-			for (c = 0; digit(*n); n++)
-				c = c*10 + *n-'0';
-			if (c <= l->argc)
+			errno = 0;
+			num = strtol(n, NULL, 10);
+			if (errno == 0 && num <= l->argc)
 				/* setstr can't fail here */
-				setstr(vp, l->argv[c], KSH_RETURN_ERROR);
+				setstr(vp, l->argv[num], KSH_RETURN_ERROR);
 			vp->flag |= RDONLY;
 			return vp;
 		}
@@ -442,7 +445,7 @@ getint(struct tbl *vp, long int *nump, bool arith)
 			base = 8;
 		have_base++;
 	}
-	for (c = *s++; c ; c = *s++) {
+	for (c = (unsigned char)*s++; c ; c = (unsigned char)*s++) {
 		if (c == '-') {
 			neg++;
 		} else if (c == '#') {
@@ -518,7 +521,7 @@ formatstr(struct tbl *vp, const char *s)
 		if (vp->flag & RJUST) {
 			const char *q = s + olen;
 			/* strip trailing spaces (at&t ksh uses q[-1] == ' ') */
-			while (q > s && isspace(q[-1]))
+			while (q > s && isspace((unsigned char)q[-1]))
 				--q;
 			slen = q - s;
 			if (slen > vp->u2.field) {
@@ -531,7 +534,7 @@ formatstr(struct tbl *vp, const char *s)
 				vp->u2.field - slen, null, slen, s);
 		} else {
 			/* strip leading spaces/zeros */
-			while (isspace(*s))
+			while (isspace((unsigned char)*s))
 				s++;
 			if (vp->flag & ZEROFIL)
 				while (*s == '0')
@@ -544,12 +547,12 @@ formatstr(struct tbl *vp, const char *s)
 
 	if (vp->flag & UCASEV_AL) {
 		for (q = p; *q; q++)
-			if (islower(*q))
-				*q = toupper(*q);
+			if (islower((unsigned char)*q))
+				*q = toupper((unsigned char)*q);
 	} else if (vp->flag & LCASEV) {
 		for (q = p; *q; q++)
-			if (isupper(*q))
-				*q = tolower(*q);
+			if (isupper((unsigned char)*q))
+				*q = tolower((unsigned char)*q);
 	}
 
 	return p;
@@ -865,12 +868,6 @@ makenv(void)
 }
 
 /*
- * Someone has set the srand() value, therefore from now on
- * we return values from rand() instead of arc4random()
- */
-int use_rand = 0;
-
-/*
  * Called after a fork in parent to bump the random number generator.
  * Done to ensure children will not get the same random number sequence
  * if the parent doesn't use $RANDOM.
@@ -878,8 +875,7 @@ int use_rand = 0;
 void
 change_random(void)
 {
-	if (use_rand)
-		rand();
+	rand();
 }
 
 /*
@@ -926,10 +922,7 @@ getspec(struct tbl *vp)
 		break;
 	case V_RANDOM:
 		vp->flag &= ~SPECIAL;
-		if (use_rand)
-			setint(vp, (long) (rand() & 0x7fff));
-		else
-			setint(vp, (long) (arc4random() & 0x7fff));
+		setint(vp, (long) (rand() & 0x7fff));
 		vp->flag |= SPECIAL;
 		break;
 #ifdef HISTORY
@@ -1030,7 +1023,6 @@ setspec(struct tbl *vp)
 	case V_RANDOM:
 		vp->flag &= ~SPECIAL;
 		srand((unsigned int)intval(vp));
-		use_rand = 1;
 		vp->flag |= SPECIAL;
 		break;
 	case V_SECONDS:
@@ -1130,7 +1122,7 @@ arraysearch(struct tbl *vp, int val)
 	} else
 		new = (struct tbl *)alloc(sizeof(struct tbl) + namelen,
 		    vp->areap);
-	strlcpy(new->name, vp->name, namelen);
+	strncpy(new->name, vp->name, namelen);
 	new->flag = vp->flag & ~(ALLOC|DEFINED|ISSET|SPECIAL);
 	new->type = vp->type;
 	new->areap = vp->areap;
