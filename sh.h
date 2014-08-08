@@ -25,6 +25,7 @@
 #include <limits.h>
 
 #include <signal.h>
+#include <time.h>
 
 #include <paths.h>
 

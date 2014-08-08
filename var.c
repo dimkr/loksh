@@ -1122,7 +1122,7 @@ arraysearch(struct tbl *vp, int val)
 	} else
 		new = (struct tbl *)alloc(sizeof(struct tbl) + namelen,
 		    vp->areap);
-	strncpy(new->name, vp->name, namelen);
+	strlcpy(new->name, vp->name, namelen);
 	new->flag = vp->flag & ~(ALLOC|DEFINED|ISSET|SPECIAL);
 	new->type = vp->type;
 	new->areap = vp->areap;

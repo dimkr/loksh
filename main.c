@@ -416,7 +416,7 @@ init_username(void)
 	else
 		p = getlogin();
 
-	strncpy(username, p != NULL ? p : "?", sizeof username);
+	strlcpy(username, p != NULL ? p : "?", sizeof username);
 }
 
 int

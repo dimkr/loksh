@@ -1,6 +1,6 @@
 CC ?= cc
-CFLAGS ?= -Wall -pedantic
-CFLAGS += -I.
+FLAGS ?= -O2
+CFLAGS += -I. -D_GNU_SOURCE -std=gnu99 -Wall -pedantic -Wno-format-security -Wno-pointer-sign
 LDFLAGS ?=
 DESTDIR ?= /
 PREFIX ?= /usr

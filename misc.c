@@ -78,7 +78,7 @@ str_save(const char *s, Area *ap)
 		return NULL;
 	len = strlen(s)+1;
 	p = alloc(len, ap);
-	strncpy(p, s, len);
+	strlcpy(p, s, len);
 	return (p);
 }
 
@@ -92,10 +92,12 @@ str_nsave(const char *s, int n, Area *ap)
 	char *ns;
 
 	if (n < 0)
-		return 0;
-	ns = alloc(n + 1, ap);
+		return NULL;
+	++n;
+	ns = alloc(n, ap);
 	ns[0] = '\0';
-	return strncat(ns, s, n);
+	strlcpy(ns, s, n);
+	return (ns);
 }
 
 /* called from expand.h:XcheckN() to grow buffer */
@@ -332,10 +334,10 @@ parse_args(char **argv,
 		char *p, *q;
 
 		/* see cmd_opts[] declaration */
-		strncpy(cmd_opts, "o:", sizeof cmd_opts);
+		strlcpy(cmd_opts, "o:", sizeof cmd_opts);
 		p = cmd_opts + strlen(cmd_opts);
 		/* see set_opts[] declaration */
-		strncpy(set_opts, "A:o;s", sizeof set_opts);
+		strlcpy(set_opts, "A:o;s", sizeof set_opts);
 		q = set_opts + strlen(set_opts);
 		for (i = 0; i < NELEM(options); i++) {
 			if (options[i].c) {
