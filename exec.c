@@ -1223,7 +1223,6 @@ herein(const char *content, int sub)
 	return fd;
 }
 
-#ifdef EDIT
 /*
  *	ksh special - the select command processing section
  *	print the args in column form - assuming that we can
@@ -1346,7 +1345,6 @@ pr_list(char *const *ap)
 
 	return n;
 }
-#endif /* EDIT */
 
 /*
  *	[[ ... ]] evaluation routines

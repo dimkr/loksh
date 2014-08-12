@@ -287,7 +287,7 @@ typedef struct trap {
 EXTERN	volatile sig_atomic_t trap;	/* traps pending? */
 EXTERN	volatile sig_atomic_t intrsig;	/* pending trap interrupts command */
 EXTERN	volatile sig_atomic_t fatal_trap;/* received a fatal signal */
-extern	volatile sig_atomic_t got_sigwinch;
+EXTERN volatile sig_atomic_t got_sigwinch;
 extern	Trap	sigtraps[NSIG+1];
 
 /*
