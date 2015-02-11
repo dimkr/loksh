@@ -5,6 +5,7 @@ LDFLAGS ?=
 DESTDIR ?= /
 PREFIX ?= /usr
 BIN_DIR ?= $(PREFIX)/bin
+BIN_NAME ?= ksh
 MAN_DIR ?= $(PREFIX)/share/man
 DOC_DIR ?= $(PREFIX)/share/doc/loksh
 OBJECTS = alloc.o c_ksh.o c_sh.o c_test.o c_ulimit.o edit.o emacs.o eval.o \
@@ -22,11 +23,11 @@ ksh: $(OBJECTS)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 clean:
-	rm -f ksh *.o
+	rm -f $(BIN_NAME) *.o
 
 install: all
-	install -v -D -m 755 ksh $(DESTDIR)/$(BIN_DIR)/ksh
-	install -v -D -m 644 ksh.1 $(DESTDIR)/$(MAN_DIR)/man1/ksh.1
+	install -v -D -m 755 ksh $(DESTDIR)/$(BIN_DIR)/$(BIN_NAME)
+	install -v -D -m 644 ksh.1 $(DESTDIR)/$(MAN_DIR)/man1/$(BIN_NAME).1
 	install -v -D -m 644 README $(DESTDIR)/$(DOC_DIR)/README
 	install -v -m 644 README.upstream $(DESTDIR)/$(DOC_DIR)/README.upstream
 	install -v -m 644 ChangeLog $(DESTDIR)/$(DOC_DIR)/ChangeLog
