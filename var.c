@@ -1,4 +1,4 @@
-/*	$OpenBSD: var.c,v 1.38 2013/12/20 17:53:09 zhuk Exp $	*/
+/*	$OpenBSD: var.c,v 1.40 2014/12/12 05:00:55 jsg Exp $	*/
 
 #include "sh.h"
 #include <time.h>
@@ -309,6 +309,8 @@ str_val(struct tbl *vp)
 		else
 			n = (vp->val.i < 0) ? -vp->val.i : vp->val.i;
 		base = (vp->type == 0) ? 10 : vp->type;
+		if (base < 2 || base > strlen(digits))
+			base = 10;
 
 		*--s = '\0';
 		do {

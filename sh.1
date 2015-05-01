@@ -1,8 +1,8 @@
-.\"	$OpenBSD: sh.1,v 1.96 2014/02/12 16:28:13 schwarze Exp $
+.\"	$OpenBSD: sh.1,v 1.100 2015/01/16 15:32:32 schwarze Exp $
 .\"
 .\"	Public Domain
 .\"
-.Dd $Mdocdate: February 12 2014 $
+.Dd $Mdocdate: January 16 2015 $
 .Dt SH 1
 .Os
 .Sh NAME
@@ -446,9 +446,9 @@ and
 are reserved words, not meta-characters.
 .It Xo case Ar word No in
 .Oo Op \&(
-.Ar \ pattern
-.Op \*(Ba Ar pattern
-.No ... No )
+.Ar pattern
+.Op | Ar pattern
+.No ... )
 .Ar list No ;;\ \& Oc ... esac
 .Xc
 The
@@ -1501,7 +1501,9 @@ blank	graph	punct	xdigit
 .Ed
 .Pp
 These match characters using the macros specified in
-.Xr ctype 3 .
+.Xr isalnum 3 ,
+.Xr isalpha 3 ,
+and so on.
 A character class may not be used as an endpoint of a range.
 .It [!..]
 Like [..],
@@ -2199,16 +2201,16 @@ POSIX special commands
 .Ic \&. , \&: , break , continue ,
 .Ic eval , exec , exit , export ,
 .Ic readonly , return , set , shift ,
-.Ic trap , unset
+.Ic times , trap , unset
 .Pp
 Additional
 .Nm
 special commands
 .Pp
-.Ic builtin , times , typeset
+.Ic builtin , typeset
 .Pp
 Very special commands
-.Pq non-POSIX
+.Pq when POSIX mode is off
 .Pp
 .Ic alias , readonly , set , typeset
 .Pp
@@ -2216,8 +2218,8 @@ POSIX regular commands
 .Pp
 .Ic alias , bg , cd , command ,
 .Ic false , fc , fg , getopts ,
-.Ic jobs , kill , read , true ,
-.Ic umask , unalias , wait
+.Ic jobs , kill , pwd , read ,
+.Ic true , umask , unalias , wait
 .Pp
 Additional
 .Nm
@@ -3382,7 +3384,7 @@ A command that exits with a zero value.
 .Op Fl R Ns Op Ar n
 .Op Fl Z Ns Op Ar n
 .Op Fl i Ns Op Ar n
-.No \*(Ba Fl f Op Fl tux
+.No \&| Fl f Op Fl tux
 .Oc
 .Oo
 .Ar name
