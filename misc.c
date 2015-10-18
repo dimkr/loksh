@@ -1,4 +1,4 @@
-/*	$OpenBSD: misc.c,v 1.39 2015/01/16 06:39:32 deraadt Exp $	*/
+/*	$OpenBSD: misc.c,v 1.40 2015/03/18 15:12:36 tedu Exp $	*/
 
 /*
  * Miscellaneous functions
@@ -91,12 +91,10 @@ str_nsave(const char *s, int n, Area *ap)
 	char *ns;
 
 	if (n < 0)
-		return NULL;
-	++n;
-	ns = alloc(n, ap);
+		return 0;
+	ns = alloc(n + 1, ap);
 	ns[0] = '\0';
-	strlcpy(ns, s, n);
-	return (ns);
+	return strncat(ns, s, n);
 }
 
 /* called from expand.h:XcheckN() to grow buffer */
@@ -1055,10 +1053,7 @@ strip_nuls(char *buf, int nbytes)
 {
 	char *dst;
 
-	/* nbytes check because some systems (older freebsd's) have a buggy
-	 * memchr()
-	 */
-	if (nbytes && (dst = memchr(buf, '\0', nbytes))) {
+	if ((dst = memchr(buf, '\0', nbytes))) {
 		char *end = buf + nbytes;
 		char *p, *q;
 
