@@ -1,12 +1,16 @@
-/*	$OpenBSD: var.c,v 1.41 2015/04/17 17:20:41 deraadt Exp $	*/
+/*	$OpenBSD: var.c,v 1.55 2015/12/30 09:07:00 tedu Exp $	*/
 
-#include "sh.h"
-#include <time.h>
-#include "ksh_limval.h"
 #include <sys/stat.h>
+
 #include <ctype.h>
+#include <errno.h>
 #include <limits.h>
 #include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include <unistd.h>
+
+#include "sh.h"
 
 /*
  * Variables
@@ -30,7 +34,7 @@ static struct tbl *arraysearch(struct tbl *, int);
 
 /*
  * create a new block for function calls and simple commands
- * assume caller has allocated and set up e->loc
+ * assume caller has allocated and set up genv->loc
  */
 void
 newblock(void)
@@ -38,21 +42,21 @@ newblock(void)
 	struct block *l;
 	static char *const empty[] = {null};
 
-	l = (struct block *) alloc(sizeof(struct block), ATEMP);
+	l = alloc(sizeof(struct block), ATEMP);
 	l->flags = 0;
-	ainit(&l->area); /* todo: could use e->area (l->area => l->areap) */
-	if (!e->loc) {
+	ainit(&l->area); /* todo: could use genv->area (l->area => l->areap) */
+	if (!genv->loc) {
 		l->argc = 0;
 		l->argv = (char **) empty;
 	} else {
-		l->argc = e->loc->argc;
-		l->argv = e->loc->argv;
+		l->argc = genv->loc->argc;
+		l->argv = genv->loc->argv;
 	}
 	l->exit = l->error = NULL;
 	ktinit(&l->vars, &l->area, 0);
 	ktinit(&l->funs, &l->area, 0);
-	l->next = e->loc;
-	e->loc = l;
+	l->next = genv->loc;
+	genv->loc = l;
 }
 
 /*
@@ -61,11 +65,11 @@ newblock(void)
 void
 popblock(void)
 {
-	struct block *l = e->loc;
+	struct block *l = genv->loc;
 	struct tbl *vp, **vpp = l->vars.tbls, *vq;
 	int i;
 
-	e->loc = l->next;	/* pop block */
+	genv->loc = l->next;	/* pop block */
 	for (i = l->vars.size; --i >= 0; )
 		if ((vp = *vpp++) != NULL && (vp->flag&SPECIAL)) {
 			if ((vq = global(vp->name))->flag & ISSET)
@@ -108,7 +112,7 @@ initvar(void)
 		{ "SECONDS",		V_SECONDS },
 		{ "TMOUT",		V_TMOUT },
 		{ "LINENO",		V_LINENO },
-		{ (char *) 0,	0 }
+		{ NULL,	0 }
 	};
 	int i;
 	struct tbl *tp;
@@ -158,7 +162,7 @@ array_index_calc(const char *n, bool *arrayp, int *valp)
 struct tbl *
 global(const char *n)
 {
-	struct block *l = e->loc;
+	struct block *l = genv->loc;
 	struct tbl *vp;
 	long	 num;
 	int c;
@@ -215,7 +219,7 @@ global(const char *n)
 		}
 		return vp;
 	}
-	for (l = e->loc; ; l = l->next) {
+	for (l = genv->loc; ; l = l->next) {
 		vp = ktsearch(&l->vars, n, h);
 		if (vp != NULL) {
 			if (array)
@@ -241,7 +245,7 @@ global(const char *n)
 struct tbl *
 local(const char *n, bool copy)
 {
-	struct block *l = e->loc;
+	struct block *l = genv->loc;
 	struct tbl *vp;
 	unsigned int h;
 	bool	 array;
@@ -260,7 +264,7 @@ local(const char *n, bool copy)
 	vp = ktenter(&l->vars, n, h);
 	if (copy && !(vp->flag & DEFINED)) {
 		struct block *ll = l;
-		struct tbl *vq = (struct tbl *) 0;
+		struct tbl *vq = NULL;
 
 		while ((ll = ll->next) && !(vq = ktsearch(&ll->vars, n, h)))
 			;
@@ -357,7 +361,7 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 	if ((vq->flag & RDONLY) && !no_ro_check) {
 		warningf(true, "%s: is read only", vq->name);
 		if (!error_ok)
-			errorf(null);
+			errorf(NULL);
 		return 0;
 	}
 	if (!(vq->flag&INTEGER)) { /* string dest */
@@ -368,7 +372,7 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 				internal_errorf(true,
 				    "setstr: %s=%s: assigning to self",
 				    vq->name, s);
-			afree((void*)vq->val.s, vq->areap);
+			afree(vq->val.s, vq->areap);
 		}
 		vq->flag &= ~(ISSET|ALLOC);
 		vq->type = 0;
@@ -387,8 +391,7 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 	vq->flag |= ISSET;
 	if ((vq->flag&SPECIAL))
 		setspec(vq);
-	if (fs)
-		afree((char *)fs, ATEMP);
+	afree((void *)fs, ATEMP);
 	return 1;
 }
 
@@ -516,7 +519,7 @@ formatstr(struct tbl *vp, const char *s)
 	} else
 		nlen = olen;
 
-	p = (char *) alloc(nlen + 1, ATEMP);
+	p = alloc(nlen + 1, ATEMP);
 	if (vp->flag & (RJUST|LJUST)) {
 		int slen;
 
@@ -572,14 +575,13 @@ export(struct tbl *vp, const char *val)
 	int vallen = strlen(val) + 1;
 
 	vp->flag |= ALLOC;
-	xp = (char*)alloc(namelen + 1 + vallen, vp->areap);
+	xp = alloc(namelen + 1 + vallen, vp->areap);
 	memcpy(vp->val.s = xp, vp->name, namelen);
 	xp += namelen;
 	*xp++ = '=';
 	vp->type = xp - vp->val.s; /* offset to value */
 	memcpy(xp, val, vallen);
-	if (op != NULL)
-		afree((void*)op, vp->areap);
+	afree(op, vp->areap);
 }
 
 /*
@@ -588,7 +590,7 @@ export(struct tbl *vp, const char *val)
  * LCASEV, UCASEV_AL), and optionally set its value if an assignment.
  */
 struct tbl *
-typeset(const char *var, Tflag set, Tflag clr, int field, int base)
+typeset(const char *var, int set, int clr, int field, int base)
 {
 	struct tbl *vp;
 	struct tbl *vpbase, *t;
@@ -669,11 +671,11 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 			if (fake_assign) {
 				if (t->flag & INTEGER) {
 					s = str_val(t);
-					free_me = (char *) 0;
+					free_me = NULL;
 				} else {
 					s = t->val.s + t->type;
 					free_me = (t->flag & ALLOC) ? t->val.s :
-					    (char *) 0;
+					    NULL;
 				}
 				t->flag &= ~ALLOC;
 			}
@@ -700,18 +702,16 @@ typeset(const char *var, Tflag set, Tflag clr, int field, int base)
 						t->flag &= ~ISSET;
 					else {
 						if (t->flag & ALLOC)
-							afree((void*) t->val.s,
-							    t->areap);
+							afree(t->val.s, t->areap);
 						t->flag &= ~(ISSET|ALLOC);
 						t->type = 0;
 					}
 				}
-				if (free_me)
-					afree((void *) free_me, t->areap);
+				afree(free_me, t->areap);
 			}
 		}
 		if (!ok)
-		    errorf(null);
+		    errorf(NULL);
 	}
 
 	if (val != NULL) {
@@ -741,7 +741,7 @@ void
 unset(struct tbl *vp, int array_ref)
 {
 	if (vp->flag & ALLOC)
-		afree((void*)vp->val.s, vp->areap);
+		afree(vp->val.s, vp->areap);
 	if ((vp->flag & ARRAY) && !array_ref) {
 		struct tbl *a, *tmp;
 
@@ -750,10 +750,10 @@ unset(struct tbl *vp, int array_ref)
 			tmp = a;
 			a = a->u.array;
 			if (tmp->flag & ALLOC)
-				afree((void *) tmp->val.s, tmp->areap);
+				afree(tmp->val.s, tmp->areap);
 			afree(tmp, tmp->areap);
 		}
-		vp->u.array = (struct tbl *) 0;
+		vp->u.array = NULL;
 	}
 	/* If foo[0] is being unset, the remainder of the array is kept... */
 	vp->flag &= SPECIAL | (array_ref ? ARRAY|DEFINED : 0);
@@ -835,13 +835,13 @@ is_wdvarassign(const char *s)
 char **
 makenv(void)
 {
-	struct block *l = e->loc;
+	struct block *l;
 	XPtrV env;
 	struct tbl *vp, **vpp;
 	int i;
 
 	XPinit(env, 64);
-	for (l = e->loc; l != NULL; l = l->next)
+	for (l = genv->loc; l != NULL; l = l->next)
 		for (vpp = l->vars.tbls, i = l->vars.size; --i >= 0; )
 			if ((vp = *vpp++) != NULL &&
 			    (vp->flag&(ISSET|EXPORT)) == (ISSET|EXPORT)) {
@@ -954,8 +954,7 @@ setspec(struct tbl *vp)
 
 	switch (special(vp->name)) {
 	case V_PATH:
-		if (path)
-			afree(path, APERM);
+		afree(path, APERM);
 		path = str_save(str_val(vp), APERM);
 		flushcom(1);	/* clear tracked aliases */
 		break;
@@ -974,7 +973,7 @@ setspec(struct tbl *vp)
 	case V_TMPDIR:
 		if (tmpdir) {
 			afree(tmpdir, APERM);
-			tmpdir = (char *) 0;
+			tmpdir = NULL;
 		}
 		/* Use tmpdir iff it is an absolute path, is writable and
 		 * searchable and is a directory...
@@ -1061,8 +1060,7 @@ unsetspec(struct tbl *vp)
 {
 	switch (special(vp->name)) {
 	case V_PATH:
-		if (path)
-			afree(path, APERM);
+		afree(path, APERM);
 		path = str_save(def_path, APERM);
 		flushcom(1);	/* clear tracked aliases */
 		break;
@@ -1074,14 +1072,14 @@ unsetspec(struct tbl *vp)
 		/* should not become unspecial */
 		if (tmpdir) {
 			afree(tmpdir, APERM);
-			tmpdir = (char *) 0;
+			tmpdir = NULL;
 		}
 		break;
 	case V_MAIL:
-		mbset((char *) 0);
+		mbset(NULL);
 		break;
 	case V_MAILPATH:
-		mpset((char *) 0);
+		mpset(NULL);
 		break;
 	case V_LINENO:
 	case V_MAILCHECK:	/* at&t ksh leaves previous value in place */
@@ -1132,7 +1130,7 @@ arraysearch(struct tbl *vp, int val)
 		else
 			new = curr;
 	} else
-		new = (struct tbl *)alloc(sizeof(struct tbl) + namelen,
+		new = alloc(sizeof(struct tbl) + namelen,
 		    vp->areap);
 	strlcpy(new->name, vp->name, namelen);
 	new->flag = vp->flag & ~(ALLOC|DEFINED|ISSET|SPECIAL);

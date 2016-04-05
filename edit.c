@@ -1,4 +1,4 @@
-/*	$OpenBSD: edit.c,v 1.40 2015/03/12 10:20:30 sthen Exp $	*/
+/*	$OpenBSD: edit.c,v 1.52 2015/12/30 09:07:00 tedu Exp $	*/
 
 /*
  * Command line editing - common code
@@ -8,16 +8,21 @@
 #include "config.h"
 #ifdef EDIT
 
-#include "sh.h"
-#include "tty.h"
-#define EXTERN
-#include "edit.h"
-#undef EXTERN
 #include <sys/ioctl.h>
-#include <ctype.h>
-#include <libgen.h>
 #include <sys/stat.h>
 
+#include <ctype.h>
+#include <errno.h>
+#include <libgen.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+#include "sh.h"
+#include "edit.h"
+#include "tty.h"
+
+X_chars edchars;
 
 static void x_sigwinch(int);
 volatile sig_atomic_t got_sigwinch;
@@ -307,10 +312,10 @@ x_print_expansions(int nwords, char *const *words, int is_command)
 
 		/* Special case for 1 match (prefix is whole word) */
 		if (nwords == 1)
-			prefix_len = x_basename(words[0], (char *) 0);
+			prefix_len = x_basename(words[0], NULL);
 		/* Any (non-trailing) slashes in non-common word suffixes? */
 		for (i = 0; i < nwords; i++)
-			if (x_basename(words[i] + prefix_len, (char *) 0) >
+			if (x_basename(words[i] + prefix_len, NULL) >
 			    prefix_len)
 				break;
 		/* All in same directory? */
@@ -321,7 +326,7 @@ x_print_expansions(int nwords, char *const *words, int is_command)
 			XPinit(l, nwords + 1);
 			for (i = 0; i < nwords; i++)
 				XPput(l, words[i] + prefix_len);
-			XPput(l, (char *) 0);
+			XPput(l, NULL);
 		}
 	}
 
@@ -449,7 +454,7 @@ x_command_glob(int flags, const char *str, int slen, char ***wordsp)
 	glob_table(pat, &w, &keywords);
 	glob_table(pat, &w, &aliases);
 	glob_table(pat, &w, &builtins);
-	for (l = e->loc; l; l = l->next)
+	for (l = genv->loc; l; l = l->next)
 		glob_table(pat, &w, &l->funs);
 
 	glob_path(flags, pat, &w, path);
@@ -459,7 +464,7 @@ x_command_glob(int flags, const char *str, int slen, char ***wordsp)
 	nwords = XPsize(w);
 
 	if (!nwords) {
-		*wordsp = (char **) 0;
+		*wordsp = NULL;
 		XPfree(w);
 		return 0;
 	}
@@ -468,16 +473,17 @@ x_command_glob(int flags, const char *str, int slen, char ***wordsp)
 	if (flags & XCF_FULLPATH) {
 		/* Sort by basename, then path order */
 		struct path_order_info *info;
-		struct path_order_info *last_info = 0;
+		struct path_order_info *last_info = NULL;
 		char **words = (char **) XPptrv(w);
 		int path_order = 0;
 		int i;
 
-		info = (struct path_order_info *)
-			alloc(sizeof(struct path_order_info) * nwords, ATEMP);
+		info = areallocarray(NULL, nwords,
+		    sizeof(struct path_order_info), ATEMP);
+
 		for (i = 0; i < nwords; i++) {
 			info[i].word = words[i];
-			info[i].base = x_basename(words[i], (char *) 0);
+			info[i].base = x_basename(words[i], NULL);
 			if (!last_info || info[i].base != last_info->base ||
 			    strncmp(words[i], last_info->word, info[i].base) != 0) {
 				last_info = &info[i];
@@ -489,7 +495,7 @@ x_command_glob(int flags, const char *str, int slen, char ***wordsp)
 			path_order_cmp);
 		for (i = 0; i < nwords; i++)
 			words[i] = info[i].word;
-		afree((void *) info, ATEMP);
+		afree(info, ATEMP);
 	} else {
 		/* Sort and remove duplicate entries */
 		char **words = (char **) XPptrv(w);
@@ -593,7 +599,7 @@ x_cf_glob(int flags, const char *buf, int buflen, int pos, int *startp,
 	nwords = (is_command ? x_command_glob : x_file_glob)(flags,
 	    buf + *startp, len, &words);
 	if (nwords == 0) {
-		*wordsp = (char **) 0;
+		*wordsp = NULL;
 		return 0;
 	}
 
@@ -616,7 +622,7 @@ add_glob(const char *str, int slen)
 	bool saw_slash = false;
 
 	if (slen < 0)
-		return (char *) 0;
+		return NULL;
 
 	toglob = str_nsave(str, slen + 1, ATEMP); /* + 1 for "*" */
 	toglob[slen] = '\0';
@@ -673,8 +679,7 @@ x_free_words(int nwords, char **words)
 	int i;
 
 	for (i = 0; i < nwords; i++)
-		if (words[i])
-			afree(words[i], ATEMP);
+		afree(words[i], ATEMP);
 	afree(words, ATEMP);
 }
 
@@ -695,7 +700,7 @@ x_basename(const char *s, const char *se)
 {
 	const char *p;
 
-	if (se == (char *) 0)
+	if (se == NULL)
 		se = s + strlen(s);
 	if (s == se)
 		return 0;
