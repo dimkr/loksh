@@ -1,8 +1,8 @@
-.\"	$OpenBSD: ksh.1,v 1.173 2015/12/29 01:02:34 mmcc Exp $
+.\"	$OpenBSD: ksh.1,v 1.179 2016/04/27 12:46:23 naddy Exp $
 .\"
 .\"	Public Domain
 .\"
-.Dd $Mdocdate: December 29 2015 $
+.Dd $Mdocdate: April 27 2016 $
 .Dt KSH 1
 .Os
 .Sh NAME
@@ -822,12 +822,6 @@ the
 and the newline are stripped; otherwise, both the
 .Ql \e
 and the character following are unchanged.
-.Pp
-.Sy Note :
-See
-.Sx POSIX mode
-below for a special rule regarding
-differences in quoting when the shell is in POSIX mode.
 .Ss Aliases
 There are two types of aliases: normal command aliases and tracked aliases.
 Command aliases are normally used as a short hand for a long or often used
@@ -2473,27 +2467,6 @@ The following is a list of things that are affected by the state of the
 option:
 .Bl -bullet
 .It
-Occurrences of
-.Ic \e\&"
-inside double quoted
-.Ic `..`
-command substitutions.
-In POSIX mode, the
-.Ic \e\&"
-is interpreted when the command is interpreted;
-in non-POSIX mode,
-the backslash is stripped before the command substitution is interpreted.
-For example,
-.Ic echo \&"`echo \e\&"hi\e\&"`\&"
-produces
-.Dq \&"hi\&"
-in POSIX mode,
-.Dq hi
-in non-POSIX mode.
-To avoid problems, use the
-.Ic $(...)\&
-form of command substitution.
-.It
 .Ic kill -l
 output.
 In POSIX mode, only signal names are listed (in a single line);
@@ -2717,7 +2690,7 @@ Additional
 .Nm
 regular commands
 .Pp
-.Ic \&[ , echo , let , mknod ,
+.Ic \&[ , echo , let ,
 .Ic print , suspend , test ,
 .Ic ulimit , whence
 .Pp
@@ -2969,7 +2942,7 @@ is executed exactly as if
 had not been specified, with two exceptions:
 firstly,
 .Ar cmd
-cannot be a shell function;
+cannot be an alias or a shell function;
 and secondly, special built-in commands lose their specialness
 (i.e. redirection and utility errors do not cause the shell to
 exit, and command assignments are not permanent).
@@ -2980,7 +2953,9 @@ option is given, a default search path is used instead of the current value of
 .Ev PATH
 (the actual value of the default path is system dependent: on
 POSIX-ish systems, it is the value returned by
-.Ic getconf CS_PATH ) .
+.Ic getconf PATH ) .
+Nevertheless, reserved words, aliases, shell functions, and
+builtin commands are still found before external commands.
 .Pp
 If the
 .Fl v
@@ -3319,43 +3294,6 @@ Since expressions may need to be quoted,
 .No (( Ar expr No ))
 is syntactic sugar for
 .No let \&" Ns Ar expr Ns \&" .
-.Pp
-.It Xo
-.Ic mknod
-.Op Fl m Ar mode
-.Ar name
-.Cm b Ns Pf | Cm c
-.Ar major minor
-.Xc
-.It Xo
-.Ic mknod
-.Op Fl m Ar mode
-.Ar name
-.Cm p
-.Xc
-Create a device special file.
-The file type may be
-.Cm b
-(block type device),
-.Cm c
-(character type device),
-or
-.Cm p
-(named pipe).
-The file created may be modified according to its
-.Ar mode
-(via the
-.Fl m
-option),
-.Ar major
-(major device number),
-and
-.Ar minor
-(minor device number).
-.Pp
-See
-.Xr mknod 8
-for further information.
 .Pp
 .It Xo
 .Ic print
@@ -3771,7 +3709,8 @@ options (with single letter names) can be found in the parameter
 .Ic set Fl o
 with no option name will list all the options and whether each is on or off;
 .Ic set +o
-will print the long names of all options that are currently on.
+will print the current shell options in a form that
+can be reinput to the shell to achieve the same option settings.
 .Pp
 Remaining arguments, if any, are positional parameters and are assigned, in
 order, to the positional parameters (i.e. $1, $2, etc.).
@@ -4473,7 +4412,7 @@ is similar to
 .Ic command Fl v
 except that
 .Ic whence
-will find reserved words and won't print aliases as alias commands.
+won't print aliases as alias commands.
 With the
 .Fl v
 option,

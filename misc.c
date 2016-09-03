@@ -1,4 +1,4 @@
-/*	$OpenBSD: misc.c,v 1.53 2015/12/21 04:57:50 mmcc Exp $	*/
+/*	$OpenBSD: misc.c,v 1.55 2016/03/20 00:01:21 krw Exp $	*/
 
 /*
  * Miscellaneous functions
@@ -240,8 +240,10 @@ printoptions(int verbose)
 		/* short version ala ksh93 */
 		shprintf("set");
 		for (i = 0; i < NELEM(options); i++)
-			if (Flag(i) && options[i].name)
-				shprintf(" -o %s", options[i].name);
+			if (options[i].name)
+				shprintf(" %co %s",
+					 Flag(i) ? '-' : '+',
+					 options[i].name);
 		shprintf("\n");
 	}
 }
@@ -1111,7 +1113,7 @@ reset_nonblock(int fd)
 {
 	int flags;
 
-	if ((flags = fcntl(fd, F_GETFL, 0)) < 0)
+	if ((flags = fcntl(fd, F_GETFL)) < 0)
 		return -1;
 	if (!(flags & O_NONBLOCK))
 		return 0;
