@@ -826,26 +826,6 @@ c_exec(char **wp)
 	return 0;
 }
 
-static int
-c_suspend(char **wp)
-{
-	if (wp[1] != NULL) {
-		bi_errorf("too many arguments");
-		return 1;
-	}
-	if (Flag(FLOGIN)) {
-		/* Can't suspend an orphaned process group. */
-		pid_t parent = getppid();
-		if (getpgid(parent) == getpgid(0) ||
-		    getsid(parent) != getsid(0)) {
-			bi_errorf("can't suspend a login shell");
-			return 1;
-		}
-	}
-	j_suspend();
-	return 0;
-}
-
 /* dummy function, special case in comexec() */
 int
 c_builtin(char **wp)
@@ -884,6 +864,5 @@ const struct builtin shbuiltins [] = {
 	{"ulimit", c_ulimit},
 	{"+umask", c_umask},
 	{"*=unset", c_unset},
-	{"suspend", c_suspend},
 	{NULL, NULL}
 };

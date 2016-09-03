@@ -13,6 +13,7 @@
  *		to work on your system
  */
 
+#include <sys/types.h>
 #include <sys/stat.h>
 
 #include <errno.h>
@@ -25,6 +26,7 @@
 #include "sh.h"
 
 #ifdef HISTORY
+# include <sys/file.h>
 # include <sys/mman.h>
 
 /*

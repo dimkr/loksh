@@ -1033,7 +1033,7 @@ setspec(struct tbl *vp)
 		break;
 	case V_RANDOM:
 		vp->flag &= ~SPECIAL;
-		srand_deterministic((unsigned int)intval(vp));
+		srand((unsigned int)intval(vp));
 		vp->flag |= SPECIAL;
 		break;
 	case V_SECONDS:

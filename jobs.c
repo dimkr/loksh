@@ -152,7 +152,11 @@ static int		kill_job(Job *, int);
 void
 j_init(int mflagset)
 {
+#ifdef CHILD_MAX
 	child_max = CHILD_MAX; /* so syscon() isn't always being called */
+#else
+	child_max = sysconf(_SC_CHILD_MAX);
+#endif
 
 	sigemptyset(&sm_default);
 	sigprocmask(SIG_SETMASK, &sm_default, NULL);
@@ -193,59 +197,6 @@ j_init(int mflagset)
 #endif /* JOBS */
 		if (Flag(FTALKING))
 			tty_init(true);
-}
-
-/* suspend the shell */
-void
-j_suspend(void)
-{
-	struct sigaction sa, osa;
-
-	/* Restore tty and pgrp. */
-	if (ttypgrp_ok) {
-		tcsetattr(tty_fd, TCSADRAIN, &tty_state);
-		if (restore_ttypgrp >= 0) {
-			if (tcsetpgrp(tty_fd, restore_ttypgrp) < 0) {
-				warningf(false,
-				    "j_suspend: tcsetpgrp() failed: %s",
-				    strerror(errno));
-			} else {
-				if (setpgid(0, restore_ttypgrp) < 0) {
-					warningf(false,
-					    "j_suspend: setpgid() failed: %s",
-					    strerror(errno));
-				}
-			}
-		}
-	}
-
-	/* Suspend the shell. */
-	memset(&sa, 0, sizeof(sa));
-	sigemptyset(&sa.sa_mask);
-	sa.sa_handler = SIG_DFL;
-	sigaction(SIGTSTP, &sa, &osa);
-	kill(0, SIGTSTP);
-
-	/* Back from suspend, reset signals, pgrp and tty. */
-	sigaction(SIGTSTP, &osa, NULL);
-	if (ttypgrp_ok) {
-		if (restore_ttypgrp >= 0) {
-			if (setpgid(0, kshpid) < 0) {
-				warningf(false,
-				    "j_suspend: setpgid() failed: %s",
-				    strerror(errno));
-				ttypgrp_ok = 0;
-			} else {
-				if (tcsetpgrp(tty_fd, kshpid) < 0) {
-					warningf(false,
-					    "j_suspend: tcsetpgrp() failed: %s",
-					    strerror(errno));
-					ttypgrp_ok = 0;
-				}
-			}
-		}
-		tty_init(true);
-	}
 }
 
 /* job cleanup before shell exit */
@@ -1435,17 +1386,11 @@ static Job *
 j_lookup(const char *cp, int *ecodep)
 {
 	Job		*j, *last_match;
-	const char	*errstr;
 	Proc		*p;
 	int		len, job = 0;
 
 	if (digit(*cp)) {
-		job = strtonum(cp, 1, INT_MAX, &errstr);
-		if (errstr) {
-			if (ecodep)
-				*ecodep = JL_NOSUCH;
-			return NULL;
-		}
+		job = atoi(cp);
 		/* Look for last_proc->pid (what $! returns) first... */
 		for (j = job_list; j != NULL; j = j->next)
 			if (j->last_proc && j->last_proc->pid == job)
@@ -1480,9 +1425,7 @@ j_lookup(const char *cp, int *ecodep)
 
 	case '0': case '1': case '2': case '3': case '4':
 	case '5': case '6': case '7': case '8': case '9':
-		job = strtonum(cp, 1, INT_MAX, &errstr);
-		if (errstr)
-			break;
+		job = atoi(cp);
 		for (j = job_list; j != NULL; j = j->next)
 			if (j->job == job)
 				return j;
