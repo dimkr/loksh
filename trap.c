@@ -11,47 +11,28 @@
 
 #include "sh.h"
 
-Trap sigtraps[NSIG + 1] = {
-	{ SIGEXIT_, "EXIT", "Signal 0" },
-	{ 1 , "HUP", "Hangup" },
-	{ 2 , "INT", "Interrupt" },
-	{ 3 , "QUIT", "Quit" },
-	{ 4 , "ILL", "Illegal instruction" },
-	{ 5 , "TRAP", "Trace trap" },
-	{ 6 , "ABRT", "Abort" },
-	{ 7 , "BUS", "Bus error" },
-	{ 8 , "FPE", "Floating point exception" },
-	{ 9 , "KILL", "Killed" },
-	{ 10 , "USR1", "User defined signal 1" },
-	{ 11 , "SEGV", "Memory fault" },
-	{ 12 , "USR2", "User defined signal 2" },
-	{ 13 , "PIPE", "Broken pipe" },
-	{ 14 , "ALRM", "Alarm clock" },
-	{ 15 , "TERM", "Terminated" },
-	{ 16 , "STKFLT", "Stack fault" },
-	{ 17 , "CHLD", "Child exited" },
-	{ 18 , "CONT", "Continued" },
-	{ 19 , "STOP", "Stopped (signal)" },
-	{ 20 , "TSTP", "Stopped" },
-	{ 21 , "TTIN", "Stopped (tty input)" },
-	{ 22 , "TTOU", "Stopped (tty output)" },
-	{ 23 , "URG", "Urgent I/O condition" },
-	{ 24 , "XCPU", "CPU time limit exceeded" },
-	{ 25 , "XFSZ", "File size limit exceeded" },
-	{ 26 , "VTALRM", "Virtual timer expired" },
-	{ 27 , "PROF", "Profiling timer expired" },
-	{ 28 , "WINCH", "Window size change" },
-	{ 29 , "IO", "I/O possible" },
-	{ 30 , "PWR", "Power-fail/Restart" },
-	{ 31 , "UNUSED", "Unused" },
-	{ SIGERR_,  "ERR",  "Error handler" }
-};
+Trap sigtraps[NSIG + 1];
 
 static struct sigaction Sigact_ign, Sigact_trap;
 
 void
 inittraps(void)
 {
+	int	i;
+
+	/* Populate sigtraps based on sys_signame and sys_siglist. */
+	for (i = 0; i <= NSIG; i++) {
+		sigtraps[i].signal = i;
+		if (i == SIGERR_) {
+			sigtraps[i].name = "ERR";
+			sigtraps[i].mess = "Error handler";
+		} else {
+			sigtraps[i].name = sys_signame[i];
+			sigtraps[i].mess = sys_siglist[i];
+		}
+	}
+	sigtraps[SIGEXIT_].name = "EXIT";	/* our name for signal 0 */
+
 	sigemptyset(&Sigact_ign.sa_mask);
 	Sigact_ign.sa_flags = 0; /* interruptible */
 	Sigact_ign.sa_handler = SIG_IGN;

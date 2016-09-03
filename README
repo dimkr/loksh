@@ -1,20 +1,22 @@
- _       _        _
-| | ___ | | _____| |__
-| |/ _ \| |/ / __| '_ \
-| | (_) |   <\__ \ | | |
-|_|\___/|_|\_\___/_| |_|
+﻿$OpenBSD: README,v 1.15 2015/12/05 19:40:45 mmcc Exp $
 
-Overview
-========
+Last updated Jul '99 for pdksh-5.2.14.
 
-loksh is a Linux (https://www.kernel.org/) port of OpenBSD's
-(http://www.openbsd.org/) ksh targeting musl (http://www.musl-libc.org/).
+PD-ksh is a mostly complete AT&T ksh look-alike (see NOTES file for a list
+of things not supported).  Work is mostly finished to make it fully
+compatible with both POSIX and AT&T ksh (when the two don't conflict).
 
-It is a small, interactive shell targeted at resource-constrained systems.
+PDksh was being maintained by Michael Rendell (michael@cs.mun.ca),
+who took over from Simon J. Gerraty (sjg@zen.void.oz.au) at the later's
+suggestion.
 
-Legal Information
-=================
+Files of interest:
+	CONTRIBUTORS	short history of pdksh, people who contributed, etc.
+	NOTES		lists of known bugs in pdksh, at&t ksh, and posix.
+	PROJECTS	list of things that need to be done in pdksh.
+	LEGAL		A file detailing legal issues concerning pdksh.
 
-loksh is licensed under the same license as the upstream code it is based on.
 
-The ASCII art logo at the top was made using FIGlet (http://www.figlet.org/).
+BTW, THE MOST FREQUENTLY REPORTED BUG IS
+	echo hi | read a; echo $a	# Does not print hi
+I'm aware of this and there is no need to report it.

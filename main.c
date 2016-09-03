@@ -17,10 +17,6 @@
 
 #include "sh.h"
 
-#ifndef _PW_NAME_LEN
-#	define _PW_NAME_LEN 32 /* see the useradd(8) man page */
-#endif
-
 extern char **environ;
 
 /*
@@ -155,6 +151,14 @@ main(int argc, char *argv[])
 	pid_t ppid;
 
 	kshname = argv[0];
+
+#ifndef MKNOD
+	if (pledge("stdio rpath wpath cpath fattr flock getpw proc exec tty",
+	    NULL) == -1) {
+		perror("pledge");
+		exit(1);
+	}
+#endif
 
 	ainit(&aperm);		/* initialize permanent Area */
 
