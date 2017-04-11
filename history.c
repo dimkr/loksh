@@ -1,4 +1,4 @@
-/*	$OpenBSD: history.c,v 1.56 2015/12/30 09:07:00 tedu Exp $	*/
+/*	$OpenBSD: history.c,v 1.58 2016/08/24 16:09:40 millert Exp $	*/
 
 /*
  * command history
@@ -14,6 +14,7 @@
  */
 
 #include <sys/stat.h>
+#include <sys/uio.h>
 
 #include <errno.h>
 #include <fcntl.h>
@@ -60,9 +61,15 @@ c_fc(char **wp)
 	struct temp *tf = NULL;
 	char *p, *editor = NULL;
 	int gflag = 0, lflag = 0, nflag = 0, sflag = 0, rflag = 0;
-	int optc;
+	int optc, ret;
 	char *first = NULL, *last = NULL;
 	char **hfirst, **hlast, **hp;
+	static int depth;
+
+	if (depth != 0) {
+		bi_errorf("history function called recursively");
+		return 1;
+	}
 
 	if (!Flag(FTALKING_I)) {
 		bi_errorf("history functions not available");
@@ -145,7 +152,10 @@ c_fc(char **wp)
 		    hist_get_newest(false);
 		if (!hp)
 			return 1;
-		return hist_replace(hp, pat, rep, gflag);
+		depth++;
+		ret = hist_replace(hp, pat, rep, gflag);
+		depth--;
+		return ret;
 	}
 
 	if (editor && (lflag || nflag)) {
@@ -229,7 +239,6 @@ c_fc(char **wp)
 	/* XXX: source should not get trashed by this.. */
 	{
 		Source *sold = source;
-		int ret;
 
 		ret = command(editor ? editor : "${FCEDIT:-/bin/ed} $_", 0);
 		source = sold;
@@ -265,7 +274,10 @@ c_fc(char **wp)
 		shf_close(shf);
 		*xp = '\0';
 		strip_nuls(Xstring(xs, xp), Xlength(xs, xp));
-		return hist_execute(Xstring(xs, xp));
+		depth++;
+		ret = hist_execute(Xstring(xs, xp));
+		depth--;
+		return ret;
 	}
 }
 
@@ -890,6 +902,7 @@ writehistfile(int lno, char *cmd)
 	unsigned char	*new;
 	int	bytes;
 	unsigned char	hdr[5];
+	struct iovec	iov[2];
 
 	(void) flock(histfd, LOCK_EX);
 	sizenow = lseek(histfd, 0L, SEEK_END);
@@ -930,8 +943,11 @@ writehistfile(int lno, char *cmd)
 	hdr[2] = (lno>>16)&0xff;
 	hdr[3] = (lno>>8)&0xff;
 	hdr[4] = lno&0xff;
-	(void) write(histfd, hdr, 5);
-	(void) write(histfd, cmd, strlen(cmd)+1);
+	iov[0].iov_base = hdr;
+	iov[0].iov_len = 5;
+	iov[1].iov_base = cmd;
+	iov[1].iov_len = strlen(cmd) + 1;
+	(void) writev(histfd, iov, 2);
 	hsize = lseek(histfd, 0L, SEEK_END);
 	(void) flock(histfd, LOCK_UN);
 	return;
