@@ -1,4 +1,4 @@
-.\"	$OpenBSD: sh.1,v 1.134 2016/07/18 18:24:21 jmc Exp $
+.\"	$OpenBSD: sh.1,v 1.141 2017/03/16 20:06:37 jmc Exp $
 .\"
 .\" Copyright (c) 2015 Jason McIntyre <jmc@openbsd.org>
 .\"
@@ -14,7 +14,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: July 18 2016 $
+.Dd $Mdocdate: March 16 2017 $
 .Dt SH 1
 .Os
 .Sh NAME
@@ -42,9 +42,9 @@ This version of
 is actually
 .Nm ksh
 in disguise.
-As such, it will also accept options documented in
+As such, it also supports the features described in
 .Xr ksh 1 .
-This manual page describes only features
+This manual page describes only the parts
 relevant to a POSIX compliant
 .Nm .
 If portability is a concern,
@@ -121,8 +121,6 @@ Do not expand file name patterns.
 When a utility is first executed,
 hash (record) its location
 so that future invocations do not need to search for it.
-Builtins are not hashed, regardless of whether this option is set or not.
-This option is set by default for non-interactive shells.
 .It Fl i
 Enable behaviour convenient for an interactive shell.
 This option is set by default
@@ -510,6 +508,14 @@ is a colon,
 .Ev OPTARG
 is set to the unsupported option,
 otherwise an error message is displayed.
+.It Ic hash Op Fl r | Ar utility
+Add
+.Ar utility
+to the hash list
+or remove
+.Pq Fl r
+all utilities from the hash list.
+Without arguments, show the utilities currently hashed.
 .It Ic jobs Oo Fl l | p Oc Op Ar id ...
 Display the status of all jobs in the current shell environment,
 or those selected by
@@ -739,8 +745,6 @@ no change occurs.
 .It Ic times
 Display accumulated process times for the shell (user and system)
 and all child processes (user and system).
-.It Ic true
-Return a true (zero) value.
 .It Ic trap Op Ar action signal ...
 Perform
 .Ar action
@@ -776,6 +780,18 @@ otherwise
 should be a signal name
 (without the SIG prefix)
 or number.
+.It Ic true
+Return a true (zero) value.
+.It Ic type Ar command ...
+For each
+.Ar command ,
+show how the shell would interpret it.
+.It Ic ulimit Op Fl f Ar n
+Limit the maximum size of a file that can be created to
+.Ar n
+blocks.
+Without arguments,
+display the current file size limit.
 .It Ic umask Oo Fl S Oc Op Ar mask
 Set the file mode creation mask to
 .Ar mask .
@@ -1646,7 +1662,7 @@ where commands are executed in the order given.
 The exit status of a sequential list is that of the last command executed.
 The format for a sequential list is:
 .Pp
-.D1 Ar command\ \& ; Op Ar command ...
+.D1 Ar command No \&; Op Ar command ...
 .Pp
 A series of one or more commands separated by
 .Sq &
@@ -2196,9 +2212,6 @@ as well as if its modification time changes.
 This implementation of
 .Nm
 does not provide notification when these files are created.
-.It
-Command substitution occurring within double quotes
-is subject to pathname expansion but should not be.
 .It
 The built-in
 .Ic newgrp

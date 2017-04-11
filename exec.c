@@ -1,4 +1,4 @@
-/*	$OpenBSD: exec.c,v 1.64 2015/12/30 09:07:00 tedu Exp $	*/
+/*	$OpenBSD: exec.c,v 1.68 2016/12/11 17:49:19 millert Exp $	*/
 
 /*
  * execute command tree
@@ -40,9 +40,12 @@ static void	dbteste_error(Test_env *, int, const char *);
  */
 int
 execute(struct op *volatile t,
-    volatile int flags, volatile int *xerrok)		/* if XEXEC don't fork */
+    volatile int flags,		/* if XEXEC don't fork */
+    volatile int *xerrok)	/* inform recursive callers in -e mode that
+				 * short-circuit && or || shouldn't be treated
+				 * as an error */
 {
-	int i, dummy = 0;
+	int i, dummy = 0, save_xerrok = 0;
 	volatile int rv = 0;
 	int pv[2];
 	char ** volatile ap;
@@ -240,16 +243,14 @@ execute(struct op *volatile t,
 			rv = execute(t->right, flags & XERROK, xerrok);
 		else {
 			flags |= XERROK;
-			if (xerrok)
-				*xerrok = 1;
+			*xerrok = 1;
 		}
 		break;
 
 	case TBANG:
 		rv = !execute(t->right, XERROK, xerrok);
 		flags |= XERROK;
-		if (xerrok)
-			*xerrok = 1;
+		*xerrok = 1;
 		break;
 
 	case TDBRACKET:
@@ -289,10 +290,15 @@ execute(struct op *volatile t,
 		}
 		rv = 0; /* in case of a continue */
 		if (t->type == TFOR) {
+			save_xerrok = *xerrok;
 			while (*ap != NULL) {
 				setstr(global(t->str), *ap++, KSH_UNWIND_ERROR);
+				/* undo xerrok in all iterations except the
+				 * last */
+				*xerrok = save_xerrok;
 				rv = execute(t->left, flags & XERROK, xerrok);
 			}
+			/* ripple xerrok set at final iteration */
 		} else { /* TSELECT */
 			for (;;) {
 				if (!(cp = do_selectargs(ap, is_first))) {
@@ -339,11 +345,13 @@ execute(struct op *volatile t,
 
 	case TCASE:
 		cp = evalstr(t->str, DOTILDE);
-		for (t = t->left; t != NULL && t->type == TPAT; t = t->right)
-		    for (ap = t->vars; *ap; ap++)
-			if ((s = evalstr(*ap, DOTILDE|DOPAT)) &&
-			    gmatch(cp, s, false))
-				goto Found;
+		for (t = t->left; t != NULL && t->type == TPAT; t = t->right) {
+			for (ap = t->vars; *ap; ap++) {
+				if ((s = evalstr(*ap, DOTILDE|DOPAT)) &&
+				    gmatch(cp, s, false))
+					goto Found;
+			}
+		}
 		break;
 	  Found:
 		rv = execute(t->left, flags & XERROK, xerrok);
@@ -381,8 +389,7 @@ execute(struct op *volatile t,
 	quitenv(NULL);		/* restores IO */
 	if ((flags&XEXEC))
 		unwind(LEXIT);	/* exit child */
-	if (rv != 0 && !(flags & XERROK) &&
-	    (xerrok == NULL || !*xerrok)) {
+	if (rv != 0 && !(flags & XERROK) && !*xerrok) {
 		trapsig(SIGERR_);
 		if (Flag(FERREXIT))
 			unwind(LERROR);
