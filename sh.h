@@ -1,4 +1,4 @@
-/*	$OpenBSD: sh.h,v 1.57 2016/03/04 15:11:06 deraadt Exp $	*/
+/*	$OpenBSD: sh.h,v 1.64 2017/09/03 11:52:01 jca Exp $	*/
 
 /*
  * Public Domain Bourne/Korn shell
@@ -10,6 +10,7 @@
 
 /* Start of common headers */
 
+#include <limits.h>
 #include <setjmp.h>
 #include <stdarg.h>
 #include <signal.h>
@@ -32,8 +33,7 @@
 #define	MAGIC		(7)	/* prefix for *?[!{,} during expand */
 #define ISMAGIC(c)	((unsigned char)(c) == MAGIC)
 
-#define	LINE	2048		/* input line size */
-#define	PATH	1024		/* pathname size (todo: PATH_MAX/pathconf()) */
+#define	LINE	4096		/* input line size */
 
 extern	const char *kshname;	/* $0 */
 extern	pid_t	kshpid;		/* $$, shell pid */
@@ -139,7 +139,7 @@ enum sh_flag {
 	FCSHHISTORY,	/* csh-style history enabled */
 #ifdef EMACS
 	FEMACS,		/* emacs command editing */
-	FEMACSUSEMETA,	/* use 8th bit as meta */
+	FEMACSUSEMETA,	/* XXX delete after 6.2 */
 #endif
 	FERREXIT,	/* -e: quit on error */
 #ifdef EMACS
@@ -367,8 +367,9 @@ extern	int	x_cols;	/* tty columns */
 #define KSH_SYSTEM_PROFILE "/etc/profile"
 
 /* Used by v_evaluate() and setstr() to control action when error occurs */
-#define KSH_UNWIND_ERROR	0	/* unwind the stack (longjmp) */
-#define KSH_RETURN_ERROR	1	/* return 1/0 for success/failure */
+#define KSH_UNWIND_ERROR	0x0	/* unwind the stack (longjmp) */
+#define KSH_RETURN_ERROR	0x1	/* return 1/0 for success/failure */
+#define KSH_IGNORE_RDONLY	0x4	/* ignore the read-only flag */
 
 #include "shf.h"
 #include "table.h"
@@ -456,6 +457,7 @@ void	hist_finish(void);
 void	histsave(int, const char *, int);
 #ifdef HISTORY
 int	c_fc(char **);
+void	sethistcontrol(const char *);
 void	sethistsize(int);
 void	sethistfile(const char *);
 char **	histpos(void);

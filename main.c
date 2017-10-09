@@ -1,4 +1,4 @@
-/*	$OpenBSD: main.c,v 1.79 2016/03/04 15:11:06 deraadt Exp $	*/
+/*	$OpenBSD: main.c,v 1.83 2017/08/11 23:10:55 guenther Exp $	*/
 
 /*
  * startup, main loop, environments and error handling
@@ -84,7 +84,7 @@ static const char initsubs[] = "${PS2=> } ${PS3=#? } ${PS4=+ }";
 static const char *initcoms [] = {
 	"typeset", "-r", "KSH_VERSION", NULL,
 	"typeset", "-x", "SHELL", "PATH", "HOME", NULL,
-	"typeset", "-i", "PPID", NULL,
+	"typeset", "-ir", "PPID", NULL,
 	"typeset", "-i", "OPTIND=1", NULL,
 	"eval", "typeset -i RANDOM MAILCHECK=\"${MAILCHECK-600}\" SECONDS=\"${SECONDS-0}\" TMOUT=\"${TMOUT-0}\"", NULL,
 	"alias",
@@ -313,14 +313,11 @@ main(int argc, char *argv[])
 	{
 		struct tbl *vp = global("PS1");
 
-		/* Set PS1 if it isn't set, or we are root and prompt doesn't
-		 * contain a # or \$ (only in ksh mode).
-		 */
-		if (!(vp->flag & ISSET) ||
-		    (!ksheuid && !strchr(str_val(vp), '#') &&
-		    (Flag(FSH) || !strstr(str_val(vp), "\\$"))))
+		/* Set PS1 if it isn't set */
+		if (!(vp->flag & ISSET)) {
 			/* setstr can't fail here */
 			setstr(vp, safe_prompt, KSH_RETURN_ERROR);
+		}
 	}
 
 	/* Set this before parsing arguments */

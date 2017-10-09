@@ -1,4 +1,4 @@
-/*	$OpenBSD: var.c,v 1.55 2015/12/30 09:07:00 tedu Exp $	*/
+/*	$OpenBSD: var.c,v 1.59 2017/08/30 17:08:45 jca Exp $	*/
 
 #include <sys/stat.h>
 
@@ -98,6 +98,7 @@ initvar(void)
 		{ "POSIXLY_CORRECT",	V_POSIXLY_CORRECT },
 		{ "TMPDIR",		V_TMPDIR },
 #ifdef HISTORY
+		{ "HISTCONTROL",	V_HISTCONTROL },
 		{ "HISTFILE",		V_HISTFILE },
 		{ "HISTSIZE",		V_HISTSIZE },
 #endif /* HISTORY */
@@ -356,8 +357,8 @@ int
 setstr(struct tbl *vq, const char *s, int error_ok)
 {
 	const char *fs = NULL;
-	int no_ro_check = error_ok & 0x4;
-	error_ok &= ~0x4;
+	int no_ro_check = error_ok & KSH_IGNORE_RDONLY;
+	error_ok &= ~KSH_IGNORE_RDONLY;
 	if ((vq->flag & RDONLY) && !no_ro_check) {
 		warningf(true, "%s: is read only", vq->name);
 		if (!error_ok)
@@ -661,6 +662,7 @@ typeset(const char *var, int set, int clr, int field, int base)
 		 */
 		for (t = vpbase; t; t = t->u.array) {
 			int fake_assign;
+			int error_ok = KSH_RETURN_ERROR;
 			char *s = NULL;
 			char *free_me = NULL;
 
@@ -683,6 +685,10 @@ typeset(const char *var, int set, int clr, int field, int base)
 				t->type = 0;
 				t->flag &= ~ALLOC;
 			}
+			if (!(t->flag & RDONLY) && (set & RDONLY)) {
+				/* allow var to be initialized read-only */
+				error_ok |= KSH_IGNORE_RDONLY;
+			}
 			t->flag = (t->flag | set) & ~clr;
 			/* Don't change base if assignment is to be done,
 			 * in case assignment fails.
@@ -692,7 +698,7 @@ typeset(const char *var, int set, int clr, int field, int base)
 			if (set & (LJUST|RJUST|ZEROFIL))
 				t->u2.field = field;
 			if (fake_assign) {
-				if (!setstr(t, s, KSH_RETURN_ERROR)) {
+				if (!setstr(t, s, error_ok)) {
 					/* Somewhat arbitrary action here:
 					 * zap contents of variable, but keep
 					 * the flag settings.
@@ -717,13 +723,13 @@ typeset(const char *var, int set, int clr, int field, int base)
 	if (val != NULL) {
 		if (vp->flag&INTEGER) {
 			/* do not zero base before assignment */
-			setstr(vp, val, KSH_UNWIND_ERROR | 0x4);
+			setstr(vp, val, KSH_UNWIND_ERROR | KSH_IGNORE_RDONLY);
 			/* Done after assignment to override default */
 			if (base > 0)
 				vp->type = base;
 		} else
 			/* setstr can't fail (readonly check already done) */
-			setstr(vp, val, KSH_RETURN_ERROR | 0x4);
+			setstr(vp, val, KSH_RETURN_ERROR | KSH_IGNORE_RDONLY);
 	}
 
 	/* only x[0] is ever exported, so use vpbase */
@@ -971,10 +977,8 @@ setspec(struct tbl *vp)
 		change_flag(FPOSIX, OF_SPECIAL, 1);
 		break;
 	case V_TMPDIR:
-		if (tmpdir) {
-			afree(tmpdir, APERM);
-			tmpdir = NULL;
-		}
+		afree(tmpdir, APERM);
+		tmpdir = NULL;
 		/* Use tmpdir iff it is an absolute path, is writable and
 		 * searchable and is a directory...
 		 */
@@ -988,6 +992,9 @@ setspec(struct tbl *vp)
 		}
 		break;
 #ifdef HISTORY
+	case V_HISTCONTROL:
+		sethistcontrol(str_val(vp));
+		break;
 	case V_HISTSIZE:
 		vp->flag &= ~SPECIAL;
 		sethistsize((int) intval(vp));
@@ -1070,10 +1077,8 @@ unsetspec(struct tbl *vp)
 		break;
 	case V_TMPDIR:
 		/* should not become unspecial */
-		if (tmpdir) {
-			afree(tmpdir, APERM);
-			tmpdir = NULL;
-		}
+		afree(tmpdir, APERM);
+		tmpdir = NULL;
 		break;
 	case V_MAIL:
 		mbset(NULL);
@@ -1081,6 +1086,11 @@ unsetspec(struct tbl *vp)
 	case V_MAILPATH:
 		mpset(NULL);
 		break;
+#ifdef HISTORY
+	case V_HISTCONTROL:
+		sethistcontrol(NULL);
+		break;
+#endif
 	case V_LINENO:
 	case V_MAILCHECK:	/* at&t ksh leaves previous value in place */
 	case V_RANDOM:

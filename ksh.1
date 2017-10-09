@@ -1,8 +1,8 @@
-.\"	$OpenBSD: ksh.1,v 1.179 2016/04/27 12:46:23 naddy Exp $
+.\"	$OpenBSD: ksh.1,v 1.195 2017/08/30 17:08:45 jca Exp $
 .\"
 .\"	Public Domain
 .\"
-.Dd $Mdocdate: April 27 2016 $
+.Dd $Mdocdate: August 30 2017 $
 .Dt KSH 1
 .Os
 .Sh NAME
@@ -124,10 +124,10 @@ option of the built-in command
 can't be used.
 .It
 Redirections that create files can't be used (i.e.\&
-.Ql > ,
-.Ql >| ,
-.Ql >> ,
-.Ql <> ) .
+.Sq Cm > ,
+.Sq Cm >| ,
+.Sq Cm >> ,
+.Sq Cm <> ) .
 .El
 .It Fl s
 The shell reads commands from standard input; all non-option arguments
@@ -219,12 +219,12 @@ Aside from delimiting words, spaces and tabs are ignored, while newlines
 usually delimit commands.
 The meta-characters are used in building the following
 .Em tokens :
-.Ql < ,
-.Ql <& ,
-.Ql << ,
-.Ql > ,
-.Ql >& ,
-.Ql >> ,
+.Sq Cm < ,
+.Sq Cm <& ,
+.Sq Cm << ,
+.Sq Cm > ,
+.Sq Cm >& ,
+.Sq Cm >> ,
 etc. are used to specify redirections (see
 .Sx Input/output redirection
 below);
@@ -497,12 +497,12 @@ Note that
 and
 .Ql }
 are reserved words, not meta-characters.
-.It Xo case Ar word No in
+.It Xo Ic case Ar word Cm in
 .Oo Op \&(
 .Ar pattern
 .Op | Ar pattern
 .No ... )
-.Ar list No ;;\ \& Oc ... esac
+.Ar list No ;;\ \& Oc ... Cm esac
 .Xc
 The
 .Ic case
@@ -527,9 +527,9 @@ Both the word and the
 patterns are subject to parameter, command, and arithmetic substitution, as
 well as tilde substitution.
 For historical reasons, open and close braces may be used instead of
-.Ic in
+.Cm in
 and
-.Ic esac
+.Cm esac
 e.g.\&
 .Ic case $foo { *) echo bar; } .
 The exit status of a
@@ -539,9 +539,9 @@ statement is that of the executed
 if no
 .Ar list
 is executed, the exit status is zero.
-.It Xo for Ar name
-.Oo in Ar word No ... Oc ;
-.No do Ar list ; No done
+.It Xo Ic for Ar name
+.Oo Cm in Ar word No ... Oc ;
+.Cm do Ar list ; Cm done
 .Xc
 For each
 .Ar word
@@ -551,14 +551,14 @@ is set to the word and
 .Ar list
 is executed.
 If
-.Ic in
+.Cm in
 is not used to specify a word list, the positional parameters
 ($1, $2, etc.)\&
 are used instead.
 For historical reasons, open and close braces may be used instead of
-.Ic do
+.Cm do
 and
-.Ic done
+.Cm done
 e.g.\&
 .Ic for i; { echo $i; } .
 The exit status of a
@@ -568,13 +568,12 @@ statement is the last exit status of
 if
 .Ar list
 is never executed, the exit status is zero.
-.It Xo if Ar list ;
-.No then Ar list ;
-.Oo elif Ar list ;
-.No then Ar list ; Oc
-.No ...
-.Oo else Ar list ; Oc
-.No fi
+.It Xo Ic if Ar list ;
+.Cm then Ar list ;
+.Oo Cm elif Ar list ;
+.Cm then Ar list ; Oc ...
+.Oo Cm else Ar list ; Oc
+.Cm fi
 .Xc
 If the exit status of the first
 .Ar list
@@ -583,16 +582,16 @@ is zero, the second
 is executed; otherwise, the
 .Ar list
 following the
-.Ic elif ,
+.Cm elif ,
 if any, is executed with similar consequences.
 If all the lists following the
 .Ic if
 and
-.Ic elif Ns s
+.Cm elif Ns s
 fail (i.e. exit with non-zero status), the
 .Ar list
 following the
-.Ic else
+.Cm else
 is executed.
 The exit status of an
 .Ic if
@@ -601,9 +600,9 @@ statement is that of non-conditional
 that is executed; if no non-conditional
 .Ar list
 is executed, the exit status is zero.
-.It Xo select Ar name
-.Oo in Ar word No ... Oc ;
-.No do Ar list ; No done
+.It Xo Ic select Ar name
+.Oo Cm in Ar word No ... Oc ;
+.Cm do Ar list ; Cm done
 .Xc
 The
 .Ic select
@@ -613,7 +612,8 @@ An enumerated list of the specified
 .Ar word Ns (s)
 is printed on standard error, followed by a prompt
 .Po
-.Ev PS3: normally
+.Ev PS3 :
+normally
 .Sq #?\ \&
 .Pc .
 A number corresponding to one of the enumerated words is then read from
@@ -645,9 +645,9 @@ If
 is omitted, the positional parameters are used
 (i.e. $1, $2, etc.).
 For historical reasons, open and close braces may be used instead of
-.Ic do
+.Cm do
 and
-.Ic done
+.Cm done
 e.g.\&
 .Ic select i; { echo $i; } .
 The exit status of a
@@ -655,18 +655,18 @@ The exit status of a
 statement is zero if a
 .Ic break
 statement is used to exit the loop, non-zero otherwise.
-.It Xo until Ar list ;
-.No do Ar list ;
-.No done
+.It Xo Ic until Ar list ;
+.Cm do Ar list ;
+.Cm done
 .Xc
 This works like
 .Ic while ,
 except that the body is executed only while the exit status of the first
 .Ar list
 is non-zero.
-.It Xo while Ar list ;
-.No do Ar list ;
-.No done
+.It Xo Ic while Ar list ;
+.Cm do Ar list ;
+.Cm done
 .Xc
 A
 .Ic while
@@ -679,7 +679,7 @@ The exit status of a
 statement is the last exit status of the
 .Ar list
 in the body of the loop; if the body is not executed, the exit status is zero.
-.It Xo function Ar name
+.It Xo Ic function Ar name
 .No { Ar list ; No }
 .Xc
 Defines the function
@@ -704,21 +704,21 @@ The
 reserved word is described in the
 .Sx Command execution
 section.
-.It (( Ar expression No ))
+.It Ic (( Ar expression Cm ))
 The arithmetic expression
 .Ar expression
 is evaluated; equivalent to
-.Dq let expression
+.Ic let Ar expression
 (see
 .Sx Arithmetic expressions
 and the
 .Ic let
 command, below).
-.It Bq Bq Ar \ \&expression\ \&
+.It Ic [[ Ar expression Cm ]]
 Similar to the
 .Ic test
 and
-.Ic \&[ ... \&]
+.Ic \&[ No ... Cm \&]
 commands (described later), with the following exceptions:
 .Bl -bullet -offset indent
 .It
@@ -836,19 +836,31 @@ when a quoted word is found, or when an alias word that is currently being
 expanded is found.
 .Pp
 The following command aliases are defined automatically by the shell:
-.Bd -literal -offset indent
-autoload='typeset -fu'
-functions='typeset -f'
-hash='alias -t'
-history='fc -l'
-integer='typeset -i'
-local='typeset'
-login='exec login'
-nohup='nohup '
-r='fc -s'
-stop='kill -STOP'
-type='whence -v'
-.Ed
+.Pp
+.Bl -item -compact -offset indent
+.It
+.Ic autoload Ns ='typeset -fu'
+.It
+.Ic functions Ns ='typeset -f'
+.It
+.Ic hash Ns ='alias -t'
+.It
+.Ic history Ns ='fc -l'
+.It
+.Ic integer Ns ='typeset -i'
+.It
+.Ic local Ns ='typeset'
+.It
+.Ic login Ns ='exec login'
+.It
+.Ic nohup Ns ='nohup '
+.It
+.Ic r Ns ='fc -s'
+.It
+.Ic stop Ns ='kill -STOP'
+.It
+.Ic type Ns ='whence -v'
+.El
 .Pp
 Tracked aliases allow the shell to remember where it found a particular
 command.
@@ -878,7 +890,7 @@ automatically tracked:
 .Xr cp 1 ,
 .Xr date 1 ,
 .Xr ed 1 ,
-.Xr emacs 1 ,
+.Sy emacs ,
 .Xr grep 1 ,
 .Xr ls 1 ,
 .Xr mail 1 ,
@@ -1006,12 +1018,6 @@ Note that
 has the same effect as
 .Ic $(cat foo) ,
 but it is carried out more efficiently because no process is started.
-.Pp
-.Sy Note :
-.Pf $( Ar command )
-expressions are currently parsed by finding the matching parenthesis,
-regardless of quoting.
-This should be fixed soon.
 .Pp
 Arithmetic substitutions are replaced by the value of the specified expression.
 For example, the command
@@ -1401,6 +1407,15 @@ It is also searched when a command can't be found using
 See
 .Sx Functions
 below for more information.
+.It Ev HISTCONTROL
+A colon separated list of history settings.
+If
+.Li ignoredups
+is present, lines identical to the previous history line will not be saved.
+If
+.Li ignorespace
+is present, lines starting with a space will not be saved.
+Unknown settings are ignored.
 .It Ev HISTFILE
 The name of the file used to store command history.
 When assigned to, history is loaded from the specified file.
@@ -1414,10 +1429,7 @@ If
 .Ev HISTFILE
 isn't set, no history file is used.
 This is different from the original Korn shell, which uses
-.Pa $HOME/.sh_history ;
-in the future,
-.Nm ksh
-may also use a default history file.
+.Pa $HOME/.sh_history .
 .It Ev HISTSIZE
 The number of commands normally stored for history.
 The default is 500.
@@ -1532,15 +1544,6 @@ The default prompt is
 for non-root users,
 .Sq #\ \&
 for root.
-If
-.Nm
-is invoked by root and
-.Ev PS1
-does not contain a
-.Sq #
-character, the default value will be used even if
-.Ev PS1
-already exists in the environment.
 .Pp
 The following backslash-escaped special characters can be used
 to customise the prompt:
@@ -1553,7 +1556,7 @@ The current date, in the format
 .Dq Day Month Date
 for example
 .Dq Wed Nov 03 .
-.It Li \eD{ Ns Ar format Ns Li }
+.It Li \eD Ns Brq Ar format
 The current date, with
 .Ar format
 converted by
@@ -1625,11 +1628,11 @@ if
 .Ev HISTFILE
 contains a history list from a previous session.
 .It Li \e$
-The default prompt i.e.\&
-.Sq # \&
+The default prompt character i.e.\&
+.Sq #
 if the effective UID is 0,
 otherwise
-.Sq $ \& .
+.Sq $ .
 Since the shell interprets
 .Sq $
 as a special character within double quotes,
@@ -1701,12 +1704,10 @@ is used to produce values.
 If the variable
 .Ev RANDOM
 is assigned a value, the value is used as the seed to
-.Xr srand 3
+.Xr srand_deterministic 3
 and subsequent references of
 .Ev RANDOM
-will use
-.Xr rand 3
-to produce values, resulting in a predictable sequence.
+produce a predictable sequence.
 .It Ev REPLY
 Default parameter for the
 .Ic read
@@ -1988,7 +1989,7 @@ input is initially set to be from
 .Pa /dev/null ,
 and commands for which any of the following redirections have been specified:
 .Bl -tag -width Ds
-.It > Ar file
+.It Cm > Ar file
 Standard output is redirected to
 .Ar file .
 If
@@ -2004,30 +2005,30 @@ for reading and then truncate it when it opens it for writing, before
 .Ar cmd
 gets a chance to actually read
 .Ar foo .
-.It >| Ar file
+.It Cm >| Ar file
 Same as
-.Ic > ,
+.Cm > ,
 except the file is truncated, even if the
 .Ic noclobber
 option is set.
-.It >> Ar file
+.It Cm >> Ar file
 Same as
-.Ic > ,
+.Cm > ,
 except if
 .Ar file
 exists it is appended to instead of being truncated.
 Also, the file is opened
 in append mode, so writes always go to the end of the file (see
 .Xr open 2 ) .
-.It < Ar file
+.It Cm < Ar file
 Standard input is redirected from
 .Ar file ,
 which is opened for reading.
-.It <> Ar file
+.It Cm <> Ar file
 Same as
-.Ic < ,
+.Cm < ,
 except the file is opened for reading and writing.
-.It << Ar marker
+.It Cm << Ar marker
 After reading the command line containing this kind of redirection (called a
 .Dq here document ) ,
 the shell copies lines from the command source into a temporary file until a
@@ -2051,11 +2052,11 @@ and
 .Ql \enewline .
 If multiple here documents are used on the same command line, they are saved in
 order.
-.It <<- Ar marker
+.It Cm <<- Ar marker
 Same as
-.Ic << ,
+.Cm << ,
 except leading tabs are stripped from lines in the here document.
-.It <& Ar fd
+.It Cm <& Ar fd
 Standard input is duplicated from file descriptor
 .Ar fd .
 .Ar fd
@@ -2066,9 +2067,9 @@ indicating the file descriptor associated with the output of the current
 co-process; or the character
 .Ql - ,
 indicating standard input is to be closed.
-.It >& Ar fd
+.It Cm >& Ar fd
 Same as
-.Ic <& ,
+.Cm <& ,
 except the operation is done on standard output.
 .El
 .Pp
@@ -2278,19 +2279,19 @@ operator, is an asynchronous process that the shell can both write to (using
 and read from (using
 .Ic read -p ) .
 The input and output of the co-process can also be manipulated using
-.Ic >&p
+.Cm >&p
 and
-.Ic <&p
+.Cm <&p
 redirections, respectively.
 Once a co-process has been started, another can't
 be started until the co-process exits, or until the co-process's input has been
 redirected using an
-.Ic exec Ar n Ns Ic >&p
+.Ic exec Ar n Ns Cm >&p
 redirection.
 If a co-process's input is redirected in this way, the next
 co-process to be started will share the output with the first co-process,
 unless the output of the initial co-process has been redirected using an
-.Ic exec Ar n Ns Ic <&p
+.Ic exec Ar n Ns Cm <&p
 redirection.
 .Pp
 Some notes concerning co-processes:
@@ -2431,19 +2432,6 @@ inside a function interferes with using
 .Ic getopts
 outside the function).
 .El
-.Pp
-In the future, the following differences will also be added:
-.Bl -bullet
-.It
-A separate trap/signal environment will be used during the execution of
-functions.
-This will mean that traps set inside a function will not affect the
-shell's traps and signals that are not ignored in the shell (but may be
-trapped) will have their default effect in a function.
-.It
-The EXIT trap, if set in a function, will be executed after the function
-returns.
-.El
 .Ss POSIX mode
 The shell is intended to be POSIX compliant;
 however, in some cases, POSIX behaviour is contrary either to
@@ -2472,9 +2460,6 @@ output.
 In POSIX mode, only signal names are listed (in a single line);
 in non-POSIX mode,
 signal numbers, names, and descriptions are printed (in columns).
-In the future, a new option
-.Pq Fl v No perhaps
-will be added to distinguish the two behaviours.
 .It
 .Ic echo
 options.
@@ -2694,11 +2679,6 @@ regular commands
 .Ic print , suspend , test ,
 .Ic ulimit , whence
 .Pp
-In the future, the additional
-.Nm
-special and regular commands may be treated
-differently from the POSIX special and regular commands.
-.Pp
 Once the type of command has been determined, any command-line parameter
 assignments are performed and exported for the duration of the command.
 .Pp
@@ -2809,9 +2789,7 @@ for more information.
 .Ar ...
 .Xc
 The specified editing command is bound to the given
-.Ar string ,
-which should consist of a control character
-optionally preceded by one of the two prefix characters.
+.Ar string .
 Future input of the
 .Ar string
 will cause the editing command to be immediately invoked.
@@ -2822,10 +2800,23 @@ flag is given, the specified input
 will afterwards be immediately replaced by the given
 .Ar substitute
 string, which may contain editing commands.
+Control characters may be written using caret notation.
+For example, ^X represents Control-X.
 .Pp
-Control characters may be written using caret notation
-i.e. ^X represents Control-X.
-Multi-character sequences are supported.
+If a certain character occurs as the first character of any bound
+multi-character
+.Ar string
+sequence, that character becomes a command prefix character.
+Any character sequence that starts with a command prefix character
+but that is not bound to a command or substitute
+is implicitly considered as bound to the
+.Sq error
+command.
+By default, two command prefix characters exist:
+Escape
+.Pq ^[
+and Control-X
+.Pq ^X .
 .Pp
 The following default bindings show how the arrow keys
 on an ANSI terminal or xterm are bound
@@ -3516,8 +3507,12 @@ prompt.
 Only used if job control is enabled
 .Pq Fl m .
 .It Fl C | Ic noclobber
-Prevent > redirection from overwriting existing files.
-Instead, >| must be used to force an overwrite.
+Prevent
+.Cm >
+redirection from overwriting existing files.
+Instead,
+.Cm >|
+must be used to force an overwrite.
 .It Fl e | Ic errexit
 Exit (after executing the
 .Dv ERR
@@ -3601,9 +3596,6 @@ character.
 .It Ic emacs
 Enable BRL emacs-like command-line editing (interactive shells only); see
 .Sx Emacs editing mode .
-.It Ic emacs-usemeta
-In emacs command-line editing, use the 8th bit as meta (^[) prefix.
-This is the default.
 .It Ic gmacs
 Enable gmacs-like command-line editing (interactive shells only).
 Currently identical to emacs editing except that transpose (^T) acts slightly
@@ -3627,8 +3619,8 @@ See above for a description of what this means.
 Do not kill running jobs with a
 .Dv SIGHUP
 signal when a login shell exits.
-Currently set by default, but this will
-change in the future to be compatible with the original Korn shell (which
+Currently set by default;
+this is different from the original Korn shell (which
 doesn't have this option, but does send the
 .Dv SIGHUP
 signal).
@@ -4278,6 +4270,7 @@ kilobytes on the amount of locked (wired) physical memory.
 Impose a limit of
 .Ar n
 kilobytes on the amount of physical memory used.
+This limit is not enforced.
 .It Fl n Ar n
 Impose a limit of
 .Ar n
@@ -4705,6 +4698,24 @@ is appended.
 If there is no command or file name with the current partial word
 as its prefix, a bell character is output (usually causing a beep to be
 sounded).
+.Pp
+Custom completions may be configured by creating an array named
+.Ql complete_command ,
+optionally suffixed with an argument number to complete only for a single
+argument.
+So defining an array named
+.Ql complete_kill
+provides possible completions for any argument to the
+.Xr kill 1
+command, but
+.Ql complete_kill_1
+only completes the first argument.
+For example, the following command makes
+.Nm
+offer a selection of signal names for the first argument to
+.Xr kill 1 :
+.Pp
+.Dl set -A complete_kill_1 -- -9 -HUP -INFO -KILL -TERM
 .It complete-command: ^X^[
 Automatically completes as much as is unique of the command name having the
 partial word up to the cursor as its prefix, as in the
@@ -4898,14 +4909,6 @@ The history buffer retains only a finite number of lines; the oldest
 are discarded as necessary.
 .It set-mark-command: ^[ Ns Aq space
 Set the mark at the cursor position.
-.It stuff:
-On systems supporting it, pushes the bound character back onto the terminal
-input where it may receive special processing by the terminal handler.
-This is useful for the BRL ^T mini-systat feature, for example.
-.It stuff-reset:
-Acts like
-.Ic stuff ,
-then aborts input the same as an interrupt.
 .It transpose-chars: ^T
 If at the end of line, or if the
 .Ic gmacs
@@ -5561,3 +5564,14 @@ The
 .Pa CONTRIBUTORS
 file in the source distribution contains a more complete list of people and
 their part in the shell's development.
+.Sh BUGS
+.Pf $( Ar command )
+expressions are currently parsed by finding the closest matching (unquoted)
+parenthesis.
+Thus constructs inside
+.Pf $( Ar command )
+may produce an error.
+For example, the parenthesis in
+.Ql x);;
+is interpreted as the closing parenthesis in
+.Ql $(case x in x);; *);; esac) .
