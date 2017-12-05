@@ -18,6 +18,7 @@
 	that was originally under case SYSULIMIT in source file "xec.c".
 */
 
+#include <sys/types.h>
 #include <sys/resource.h>
 
 #include <ctype.h>

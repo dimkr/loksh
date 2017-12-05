@@ -1,4 +1,4 @@
-/*	$OpenBSD: lex.c,v 1.69 2016/04/27 12:46:23 naddy Exp $	*/
+/*	$OpenBSD: lex.c,v 1.71 2017/07/04 11:46:15 anton Exp $	*/
 
 /*
  * lexical analysis and source input

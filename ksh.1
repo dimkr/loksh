@@ -1,8 +1,16 @@
+<<<<<<< HEAD
 .\"	$OpenBSD: ksh.1,v 1.187 2017/02/19 22:09:18 schwarze Exp $
 .\"
 .\"	Public Domain
 .\"
 .Dd $Mdocdate: February 19 2017 $
+=======
+.\"	$OpenBSD: ksh.1,v 1.195 2017/08/30 17:08:45 jca Exp $
+.\"
+.\"	Public Domain
+.\"
+.Dd $Mdocdate: August 30 2017 $
+>>>>>>> upstream/6.2
 .Dt KSH 1
 .Os
 .Sh NAME
@@ -890,7 +898,7 @@ automatically tracked:
 .Xr cp 1 ,
 .Xr date 1 ,
 .Xr ed 1 ,
-.Xr emacs 1 ,
+.Sy emacs ,
 .Xr grep 1 ,
 .Xr ls 1 ,
 .Xr mail 1 ,
@@ -1407,6 +1415,15 @@ It is also searched when a command can't be found using
 See
 .Sx Functions
 below for more information.
+.It Ev HISTCONTROL
+A colon separated list of history settings.
+If
+.Li ignoredups
+is present, lines identical to the previous history line will not be saved.
+If
+.Li ignorespace
+is present, lines starting with a space will not be saved.
+Unknown settings are ignored.
 .It Ev HISTFILE
 The name of the file used to store command history.
 When assigned to, history is loaded from the specified file.
@@ -1535,15 +1552,6 @@ The default prompt is
 for non-root users,
 .Sq #\ \&
 for root.
-If
-.Nm
-is invoked by root and
-.Ev PS1
-does not contain a
-.Sq #
-character, the default value will be used even if
-.Ev PS1
-already exists in the environment.
 .Pp
 The following backslash-escaped special characters can be used
 to customise the prompt:
@@ -1628,11 +1636,11 @@ if
 .Ev HISTFILE
 contains a history list from a previous session.
 .It Li \e$
-The default prompt i.e.\&
-.Sq # \&
+The default prompt character i.e.\&
+.Sq #
 if the effective UID is 0,
 otherwise
-.Sq $ \& .
+.Sq $ .
 Since the shell interprets
 .Sq $
 as a special character within double quotes,
@@ -3596,9 +3604,6 @@ character.
 .It Ic emacs
 Enable BRL emacs-like command-line editing (interactive shells only); see
 .Sx Emacs editing mode .
-.It Ic emacs-usemeta
-In emacs command-line editing, use the 8th bit as meta (^[) prefix.
-This is the default.
 .It Ic gmacs
 Enable gmacs-like command-line editing (interactive shells only).
 Currently identical to emacs editing except that transpose (^T) acts slightly
@@ -4912,14 +4917,6 @@ The history buffer retains only a finite number of lines; the oldest
 are discarded as necessary.
 .It set-mark-command: ^[ Ns Aq space
 Set the mark at the cursor position.
-.It stuff:
-On systems supporting it, pushes the bound character back onto the terminal
-input where it may receive special processing by the terminal handler.
-This is useful for the BRL ^T mini-systat feature, for example.
-.It stuff-reset:
-Acts like
-.Ic stuff ,
-then aborts input the same as an interrupt.
 .It transpose-chars: ^T
 If at the end of line, or if the
 .Ic gmacs

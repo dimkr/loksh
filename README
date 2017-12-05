@@ -8,7 +8,7 @@ Overview
 ========
 
 loksh is a Linux (https://www.kernel.org/) port of OpenBSD's
-(http://www.openbsd.org/) ksh targeting musl (http://www.musl-libc.org/).
+(http://www.openbsd.org/) ksh.
 
 It is a small, interactive shell targeted at resource-constrained systems.
 

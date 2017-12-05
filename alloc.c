@@ -1,4 +1,4 @@
-/*	$OpenBSD: alloc.c,v 1.15 2016/06/01 10:29:20 espie Exp $	*/
+/*	$OpenBSD: alloc.c,v 1.17 2017/08/15 17:57:57 jca Exp $	*/
 
 /* Public domain, like most of the rest of ksh */
 
@@ -47,7 +47,7 @@ alloc(size_t size, Area *ap)
 	if (size > SIZE_MAX - sizeof(struct link))
 		internal_errorf(1, "unable to allocate memory");
 
-	l = malloc(sizeof(struct link) + size);
+	l = calloc(1, sizeof(struct link) + size);
 	if (l == NULL)
 		internal_errorf(1, "unable to allocate memory");
 	l->next = ap->freelist;
@@ -111,20 +111,12 @@ aresize(void *ptr, size_t size, Area *ap)
 void
 afree(void *ptr, Area *ap)
 {
-	struct link *l, *l2;
+	struct link *l;
 
 	if (!ptr)
 		return;
 
 	l = P2L(ptr);
-
-	for (l2 = ap->freelist; l2 != NULL; l2 = l2->next) {
-		if (l == l2)
-			break;
-	}
-	if (l2 == NULL)
-		internal_errorf(1, "afree: %p not present in area %p", ptr, ap);
-
 	if (l->prev)
 		l->prev->next = l->next;
 	else

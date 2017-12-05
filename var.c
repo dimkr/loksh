@@ -1,4 +1,4 @@
-/*	$OpenBSD: var.c,v 1.57 2016/09/08 15:50:50 millert Exp $	*/
+/*	$OpenBSD: var.c,v 1.59 2017/08/30 17:08:45 jca Exp $	*/
 
 #include <sys/stat.h>
 
@@ -98,6 +98,7 @@ initvar(void)
 		{ "POSIXLY_CORRECT",	V_POSIXLY_CORRECT },
 		{ "TMPDIR",		V_TMPDIR },
 #ifdef HISTORY
+		{ "HISTCONTROL",	V_HISTCONTROL },
 		{ "HISTFILE",		V_HISTFILE },
 		{ "HISTSIZE",		V_HISTSIZE },
 #endif /* HISTORY */
@@ -976,10 +977,8 @@ setspec(struct tbl *vp)
 		change_flag(FPOSIX, OF_SPECIAL, 1);
 		break;
 	case V_TMPDIR:
-		if (tmpdir) {
-			afree(tmpdir, APERM);
-			tmpdir = NULL;
-		}
+		afree(tmpdir, APERM);
+		tmpdir = NULL;
 		/* Use tmpdir iff it is an absolute path, is writable and
 		 * searchable and is a directory...
 		 */
@@ -993,6 +992,9 @@ setspec(struct tbl *vp)
 		}
 		break;
 #ifdef HISTORY
+	case V_HISTCONTROL:
+		sethistcontrol(str_val(vp));
+		break;
 	case V_HISTSIZE:
 		vp->flag &= ~SPECIAL;
 		sethistsize((int) intval(vp));
@@ -1075,10 +1077,8 @@ unsetspec(struct tbl *vp)
 		break;
 	case V_TMPDIR:
 		/* should not become unspecial */
-		if (tmpdir) {
-			afree(tmpdir, APERM);
-			tmpdir = NULL;
-		}
+		afree(tmpdir, APERM);
+		tmpdir = NULL;
 		break;
 	case V_MAIL:
 		mbset(NULL);
@@ -1086,6 +1086,11 @@ unsetspec(struct tbl *vp)
 	case V_MAILPATH:
 		mpset(NULL);
 		break;
+#ifdef HISTORY
+	case V_HISTCONTROL:
+		sethistcontrol(NULL);
+		break;
+#endif
 	case V_LINENO:
 	case V_MAILCHECK:	/* at&t ksh leaves previous value in place */
 	case V_RANDOM:
