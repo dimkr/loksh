@@ -1,4 +1,4 @@
-/*	$OpenBSD: var.c,v 1.59 2017/08/30 17:08:45 jca Exp $	*/
+/*	$OpenBSD: var.c,v 1.66 2018/03/15 16:51:29 anton Exp $	*/
 
 #include <sys/stat.h>
 
@@ -97,15 +97,11 @@ initvar(void)
 		{ "PATH",		V_PATH },
 		{ "POSIXLY_CORRECT",	V_POSIXLY_CORRECT },
 		{ "TMPDIR",		V_TMPDIR },
-#ifdef HISTORY
 		{ "HISTCONTROL",	V_HISTCONTROL },
 		{ "HISTFILE",		V_HISTFILE },
 		{ "HISTSIZE",		V_HISTSIZE },
-#endif /* HISTORY */
-#ifdef EDIT
 		{ "EDITOR",		V_EDITOR },
 		{ "VISUAL",		V_VISUAL },
-#endif /* EDIT */
 		{ "MAIL",		V_MAIL },
 		{ "MAILCHECK",		V_MAILCHECK },
 		{ "MAILPATH",		V_MAILPATH },
@@ -306,7 +302,7 @@ str_val(struct tbl *vp)
 		    "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ" :
 		    "0123456789abcdefghijklmnopqrstuvwxyz";
 		unsigned long n;
-		int base;
+		unsigned int base;
 
 		s = strbuf + sizeof(strbuf);
 		if (vp->flag & INT_U)
@@ -370,9 +366,8 @@ setstr(struct tbl *vq, const char *s, int error_ok)
 			/* debugging */
 			if (s >= vq->val.s &&
 			    s <= vq->val.s + strlen(vq->val.s))
-				internal_errorf(true,
-				    "setstr: %s=%s: assigning to self",
-				    vq->name, s);
+				internal_errorf("%s: %s=%s: assigning to self",
+				    __func__, vq->name, s);
 			afree(vq->val.s, vq->areap);
 		}
 		vq->flag &= ~(ISSET|ALLOC);
@@ -525,11 +520,11 @@ formatstr(struct tbl *vp, const char *s)
 		int slen;
 
 		if (vp->flag & RJUST) {
-			const char *q = s + olen;
-			/* strip trailing spaces (at&t ksh uses q[-1] == ' ') */
-			while (q > s && isspace((unsigned char)q[-1]))
-				--q;
-			slen = q - s;
+			const char *r = s + olen;
+			/* strip trailing spaces (at&t ksh uses r[-1] == ' ') */
+			while (r > s && isspace((unsigned char)r[-1]))
+				--r;
+			slen = r - s;
 			if (slen > vp->u2.field) {
 				s += slen - vp->u2.field;
 				slen = vp->u2.field;
@@ -933,13 +928,11 @@ getspec(struct tbl *vp)
 		setint(vp, (long) (rand() & 0x7fff));
 		vp->flag |= SPECIAL;
 		break;
-#ifdef HISTORY
 	case V_HISTSIZE:
 		vp->flag &= ~SPECIAL;
 		setint(vp, (long) histsize);
 		vp->flag |= SPECIAL;
 		break;
-#endif /* HISTORY */
 	case V_OPTIND:
 		vp->flag &= ~SPECIAL;
 		setint(vp, (long) user_opt.uoptind);
@@ -960,8 +953,8 @@ setspec(struct tbl *vp)
 
 	switch (special(vp->name)) {
 	case V_PATH:
-		afree(path, APERM);
-		path = str_save(str_val(vp), APERM);
+		afree(search_path, APERM);
+		search_path = str_save(str_val(vp), APERM);
 		flushcom(1);	/* clear tracked aliases */
 		break;
 	case V_IFS:
@@ -991,7 +984,6 @@ setspec(struct tbl *vp)
 				tmpdir = str_save(s, APERM);
 		}
 		break;
-#ifdef HISTORY
 	case V_HISTCONTROL:
 		sethistcontrol(str_val(vp));
 		break;
@@ -1003,8 +995,6 @@ setspec(struct tbl *vp)
 	case V_HISTFILE:
 		sethistfile(str_val(vp));
 		break;
-#endif /* HISTORY */
-#ifdef EDIT
 	case V_VISUAL:
 		set_editmode(str_val(vp));
 		break;
@@ -1026,7 +1016,6 @@ setspec(struct tbl *vp)
 				x_cols = l;
 		}
 		break;
-#endif /* EDIT */
 	case V_MAIL:
 		mbset(str_val(vp));
 		break;
@@ -1067,8 +1056,8 @@ unsetspec(struct tbl *vp)
 {
 	switch (special(vp->name)) {
 	case V_PATH:
-		afree(path, APERM);
-		path = str_save(def_path, APERM);
+		afree(search_path, APERM);
+		search_path = str_save(def_path, APERM);
 		flushcom(1);	/* clear tracked aliases */
 		break;
 	case V_IFS:
@@ -1086,11 +1075,9 @@ unsetspec(struct tbl *vp)
 	case V_MAILPATH:
 		mpset(NULL);
 		break;
-#ifdef HISTORY
 	case V_HISTCONTROL:
 		sethistcontrol(NULL);
 		break;
-#endif
 	case V_LINENO:
 	case V_MAILCHECK:	/* at&t ksh leaves previous value in place */
 	case V_RANDOM:

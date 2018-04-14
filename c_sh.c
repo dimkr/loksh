@@ -1,4 +1,4 @@
-/*	$OpenBSD: c_sh.c,v 1.60 2017/07/22 09:37:21 anton Exp $	*/
+/*	$OpenBSD: c_sh.c,v 1.62 2017/12/27 13:02:57 millert Exp $	*/
 
 /*
  * built-in Bourne commands
@@ -201,7 +201,7 @@ c_dot(char **wp)
 
 	if ((cp = wp[builtin_opt.optind]) == NULL)
 		return 0;
-	file = search(cp, path, R_OK, &err);
+	file = search(cp, search_path, R_OK, &err);
 	if (file == NULL) {
 		bi_errorf("%s: %s", cp, err ? strerror(err) : "not found");
 		return 1;
@@ -251,7 +251,7 @@ int
 c_read(char **wp)
 {
 	int c = 0;
-	int expand = 1, history = 0;
+	int expand = 1, savehist = 0;
 	int expanding;
 	int ecode = 0;
 	char *cp;
@@ -275,7 +275,7 @@ c_read(char **wp)
 			expand = 0;
 			break;
 		case 's':
-			history = 1;
+			savehist = 1;
 			break;
 		case 'u':
 			if (!*(cp = builtin_opt.optarg))
@@ -321,7 +321,7 @@ c_read(char **wp)
 	 * coproc_readw_close(fd);
 	 */
 
-	if (history)
+	if (savehist)
 		Xinit(xs, xp, 128, ATEMP);
 	expanding = 0;
 	Xinit(cs, cp, 128, ATEMP);
@@ -349,7 +349,7 @@ c_read(char **wp)
 				}
 				break;
 			}
-			if (history) {
+			if (savehist) {
 				Xcheck(xs, xp);
 				Xput(xs, xp, c);
 			}
@@ -362,7 +362,7 @@ c_read(char **wp)
 						/* set prompt in case this is
 						 * called from .profile or $ENV
 						 */
-						set_prompt(PS2, NULL);
+						set_prompt(PS2);
 						pprompt(prompt, 0);
 					}
 				} else if (c != EOF)
@@ -405,7 +405,7 @@ c_read(char **wp)
 	}
 
 	shf_flush(shf);
-	if (history) {
+	if (savehist) {
 		Xput(xs, xp, '\0');
 		source->line++;
 		histsave(source->line, Xstring(xs, xp), 1);

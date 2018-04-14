@@ -1,7 +1,7 @@
 #ifndef _COMPAT_SYS_TIME_H_
 #define _COMPAT_SYS_TIME_H_
 
-/*	$OpenBSD: time.h,v 1.36 2016/09/12 19:41:20 guenther Exp $	*/
+/*	$OpenBSD: time.h,v 1.37 2017/12/11 23:31:16 jca Exp $	*/
 /*	$NetBSD: time.h,v 1.18 1996/04/23 10:29:33 mycroft Exp $	*/
 
 /*
@@ -36,30 +36,30 @@
  */
 
 /* Operations on timevals. */
-#define timerclear(tvp)         (tvp)->tv_sec = (tvp)->tv_usec = 0
-#define timerisset(tvp)         ((tvp)->tv_sec || (tvp)->tv_usec)
-#define timercmp(tvp, uvp, cmp)                                         \
-        (((tvp)->tv_sec == (uvp)->tv_sec) ?                             \
-            ((tvp)->tv_usec cmp (uvp)->tv_usec) :                       \
-            ((tvp)->tv_sec cmp (uvp)->tv_sec))
-#define timeradd(tvp, uvp, vvp)                                         \
-        do {                                                            \
-                (vvp)->tv_sec = (tvp)->tv_sec + (uvp)->tv_sec;          \
-                (vvp)->tv_usec = (tvp)->tv_usec + (uvp)->tv_usec;       \
-                if ((vvp)->tv_usec >= 1000000) {                        \
-                        (vvp)->tv_sec++;                                \
-                        (vvp)->tv_usec -= 1000000;                      \
-                }                                                       \
-        } while (0)
-#define timersub(tvp, uvp, vvp)                                         \
-        do {                                                            \
-                (vvp)->tv_sec = (tvp)->tv_sec - (uvp)->tv_sec;          \
-                (vvp)->tv_usec = (tvp)->tv_usec - (uvp)->tv_usec;       \
-                if ((vvp)->tv_usec < 0) {                               \
-                        (vvp)->tv_sec--;                                \
-                        (vvp)->tv_usec += 1000000;                      \
-                }                                                       \
-        } while (0)
+#define	timerclear(tvp)		(tvp)->tv_sec = (tvp)->tv_usec = 0
+#define	timerisset(tvp)		((tvp)->tv_sec || (tvp)->tv_usec)
+#define	timercmp(tvp, uvp, cmp)						\
+	(((tvp)->tv_sec == (uvp)->tv_sec) ?				\
+	    ((tvp)->tv_usec cmp (uvp)->tv_usec) :			\
+	    ((tvp)->tv_sec cmp (uvp)->tv_sec))
+#define	timeradd(tvp, uvp, vvp)						\
+	do {								\
+		(vvp)->tv_sec = (tvp)->tv_sec + (uvp)->tv_sec;		\
+		(vvp)->tv_usec = (tvp)->tv_usec + (uvp)->tv_usec;	\
+		if ((vvp)->tv_usec >= 1000000) {			\
+			(vvp)->tv_sec++;				\
+			(vvp)->tv_usec -= 1000000;			\
+		}							\
+	} while (0)
+#define	timersub(tvp, uvp, vvp)						\
+	do {								\
+		(vvp)->tv_sec = (tvp)->tv_sec - (uvp)->tv_sec;		\
+		(vvp)->tv_usec = (tvp)->tv_usec - (uvp)->tv_usec;	\
+		if ((vvp)->tv_usec < 0) {				\
+			(vvp)->tv_sec--;				\
+			(vvp)->tv_usec += 1000000;			\
+		}							\
+	} while (0)
 
 /* Operations on timespecs. */
 #define	timespeccmp(tsp, usp, cmp)					\
