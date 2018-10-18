@@ -1,4 +1,4 @@
-/*	$OpenBSD: eval.c,v 1.59 2018/01/16 22:52:32 jca Exp $	*/
+/*	$OpenBSD: eval.c,v 1.63 2018/07/09 00:20:35 anton Exp $	*/
 
 /*
  * Expansion - quoting, separation, substitution, globbing
@@ -57,6 +57,8 @@ static char	*maybe_expand_tilde(char *, XString *, char **, int);
 static	char   *tilde(char *);
 static	char   *homedir(char *);
 static void	alt_expand(XPtrV *, char *, char *, char *, int);
+
+static struct tbl *varcpy(struct tbl *);
 
 /* compile and expand word */
 char *
@@ -190,7 +192,8 @@ expand(char *cp,	/* input word */
 	doblank = 0;
 	make_magic = 0;
 	word = (f&DOBLANK) ? IFS_WS : IFS_WORD;
-	st_head.next = NULL;
+
+	memset(&st_head, 0, sizeof(st_head));
 	st = &st_head;
 
 	while (1) {
@@ -305,7 +308,7 @@ expand(char *cp,	/* input word */
 					st->stype = stype;
 					st->base = Xsavepos(ds, dp);
 					st->f = f;
-					st->var = x.var;
+					st->var = varcpy(x.var);
 					st->quote = quote;
 					/* skip qualifier(s) */
 					if (stype)
@@ -577,7 +580,7 @@ expand(char *cp,	/* input word */
 					Xinit(ds, dp, 128, ATEMP);
 			}
 			if (c == 0)
-				return;
+				goto done;
 			if (word != IFS_NWS)
 				word = ctype(c, C_IFSWS) ? IFS_WS : IFS_NWS;
 		} else {
@@ -682,6 +685,14 @@ expand(char *cp,	/* input word */
 			word = IFS_WORD;
 		}
 	}
+
+done:
+	for (st = &st_head; st != NULL; st = st->next) {
+		if (st->var == NULL || (st->var->flag & RDONLY) == 0)
+			continue;
+
+		afree(st->var, ATEMP);
+	}
 }
 
 /*
@@ -732,7 +743,7 @@ varsub(Expand *xp, char *sp, char *word,
 		if (Flag(FNOUNSET) && c == 0 && !zero_ok)
 			errorf("%s: parameter not set", sp);
 		*stypep = 0; /* unqualified variable/string substitution */
-		xp->str = str_save(ulton((unsigned long)c, 10), ATEMP);
+		xp->str = str_save(u64ton((uint64_t)c, 10), ATEMP);
 		return XSUB;
 	}
 
@@ -1285,4 +1296,24 @@ alt_expand(XPtrV *wp, char *start, char *exp_start, char *end, int fdo)
 		}
 	}
 	return;
+}
+
+/*
+ * Copy the given variable if it's flagged as read-only.
+ * Such variables have static storage and only one can therefore be referenced
+ * at a time.
+ * This is necessary in order to allow variable expansion expressions to refer
+ * to multiple read-only variables.
+ */
+static struct tbl *
+varcpy(struct tbl *vp)
+{
+	struct tbl *cpy;
+
+	if (vp == NULL || (vp->flag & RDONLY) == 0)
+		return vp;
+
+	cpy = alloc(sizeof(struct tbl), ATEMP);
+	memcpy(cpy, vp, sizeof(struct tbl));
+	return cpy;
 }
