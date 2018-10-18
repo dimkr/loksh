@@ -204,6 +204,7 @@ unvis(char *cp, char c, int *astate, int flag)
 		return (UNVIS_SYNBAD);
 	}
 }
+DEF_WEAK(unvis);
 
 /*
  * strunvis - decode src into dst 

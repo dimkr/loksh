@@ -9,6 +9,9 @@ BIN_NAME ?= ksh
 MAN_DIR ?= $(PREFIX)/share/man
 DOC_DIR ?= $(PREFIX)/share/doc/loksh
 
+NCURSES_CFLAGS = $(shell pkg-config --cflags ncurses)
+NCURSES_LDFLAGS = $(shell pkg-config --libs ncurses)
+
 OBJECTS = alloc.o c_ksh.o c_sh.o c_test.o c_ulimit.o edit.o emacs.o eval.o \
           exec.o expr.o history.o io.o jobs.o lex.o mail.o main.o misc.o \
           path.o shf.o syn.o table.o trap.o tree.o tty.o var.o version.o vi.o \
@@ -19,10 +22,10 @@ HEADERS = c_test.h charclass.h config.h edit.h expand.h ksh_limval.h lex.h \
 all: ksh
 
 %.o: %.c $(HEADERS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+	$(CC) -c -o $@ $< $(CFLAGS) $(NCURSES_CFLAGS)
 
 ksh: $(OBJECTS)
-	$(CC) -o $@ $^ $(LDFLAGS)
+	$(CC) -o $@ $^ $(LDFLAGS) $(NCURSES_LDFLAGS)
 
 clean:
 	rm -f $(BIN_NAME) *.o

@@ -1,4 +1,4 @@
-/*	$OpenBSD: mail.c,v 1.22 2015/10/19 14:42:16 mmcc Exp $	*/
+/*	$OpenBSD: mail.c,v 1.24 2018/06/25 15:22:30 cheloha Exp $	*/
 
 /*
  * Mailbox checking code by Robert J. Gibson, adapted for PD ksh by
@@ -6,6 +6,7 @@
  */
 
 #include <sys/stat.h>
+#include <sys/time.h>
 
 #include <string.h>
 #include <time.h>
@@ -30,7 +31,7 @@ typedef struct mbox {
 
 static mbox_t	*mplist;
 static mbox_t	mbox;
-static time_t	mlastchkd;	/* when mail was last checked */
+static struct	timespec mlastchkd;	/* when mail was last checked */
 static time_t	mailcheck_interval;
 
 static void	munset(mbox_t *); /* free mlist and mval */
@@ -41,14 +42,18 @@ void
 mcheck(void)
 {
 	mbox_t		*mbp;
-	time_t		 now;
+	struct timespec	 elapsed, now;
 	struct tbl	*vp;
 	struct stat	 stbuf;
+	static int	 first = 1;
 
-	now = time(NULL);
-	if (mlastchkd == 0)
+	clock_gettime(CLOCK_MONOTONIC, &now);
+	if (first) {
 		mlastchkd = now;
-	if (now - mlastchkd >= mailcheck_interval) {
+		first = 0;
+	}
+	timespecsub(&now, &mlastchkd, &elapsed);
+	if (elapsed.tv_sec >= mailcheck_interval) {
 		mlastchkd = now;
 
 		if (mplist)
@@ -81,7 +86,7 @@ mcheck(void)
 }
 
 void
-mcset(long int interval)
+mcset(int64_t interval)
 {
 	mailcheck_interval = interval;
 }

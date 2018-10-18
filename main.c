@@ -1,4 +1,4 @@
-/*	$OpenBSD: main.c,v 1.90 2018/03/15 16:51:29 anton Exp $	*/
+/*	$OpenBSD: main.c,v 1.93 2018/09/29 14:13:19 millert Exp $	*/
 
 /*
  * startup, main loop, environments and error handling
@@ -85,14 +85,13 @@ static const char initsubs[] = "${PS2=> } ${PS3=#? } ${PS4=+ }";
 
 static const char *initcoms [] = {
 	"typeset", "-r", "KSH_VERSION", NULL,
-	"typeset", "-x", "SHELL", "PATH", "HOME", NULL,
+	"typeset", "-x", "SHELL", "PATH", "HOME", "PWD", "OLDPWD", NULL,
 	"typeset", "-ir", "PPID", NULL,
 	"typeset", "-i", "OPTIND=1", NULL,
 	"eval", "typeset -i RANDOM MAILCHECK=\"${MAILCHECK-600}\" SECONDS=\"${SECONDS-0}\" TMOUT=\"${TMOUT-0}\"", NULL,
 	"alias",
 	 /* Standard ksh aliases */
 	  "hash=alias -t",	/* not "alias -t --": hash -r needs to work */
-	  "type=whence -v",
 	  "stop=kill -STOP",
 	  "autoload=typeset -fu",
 	  "functions=typeset -f",
@@ -285,7 +284,7 @@ main(int argc, char *argv[])
 			setstr(pwd_v, current_wd, KSH_RETURN_ERROR);
 	}
 	ppid = getppid();
-	setint(global("PPID"), (long) ppid);
+	setint(global("PPID"), (int64_t) ppid);
 	/* setstr can't fail here */
 	setstr(global(version_param), ksh_version, KSH_RETURN_ERROR);
 
