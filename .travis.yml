@@ -1,0 +1,13 @@
+language: c
+
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+
+services:
+  - docker
+
+script:
+  - docker build -t loksh -f Dockerfile .
+  - docker run -e CI -w /root/loksh -v `pwd`:/root/loksh loksh ./ci.sh
