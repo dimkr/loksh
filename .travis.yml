@@ -1,13 +1,7 @@
-language: c
-
-matrix:
-  include:
-    - os: linux
-      dist: trusty
+language: minimal
 
 services:
   - docker
 
 script:
-  - docker build -t loksh -f Dockerfile .
-  - docker run -e CI -w /root/loksh -v `pwd`:/root/loksh loksh ./ci.sh
+  - docker run -e CI -w /root/loksh -v `pwd`:/root/loksh dimkr/c-dev:latest ./ci.sh
