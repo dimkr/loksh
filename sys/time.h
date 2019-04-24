@@ -1,7 +1,7 @@
 #ifndef _COMPAT_SYS_TIME_H_
 #define _COMPAT_SYS_TIME_H_
 
-/*	$OpenBSD: time.h,v 1.38 2018/05/28 18:05:42 guenther Exp $	*/
+/*	$OpenBSD: time.h,v 1.40 2019/01/19 01:53:44 cheloha Exp $	*/
 /*	$NetBSD: time.h,v 1.18 1996/04/23 10:29:33 mycroft Exp $	*/
 
 /*

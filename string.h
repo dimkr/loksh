@@ -42,4 +42,4 @@ size_t	 strlcat(char *, const char *, size_t)
 size_t	 strlcpy(char *, const char *, size_t)
 		__attribute__ ((__bounded__(__string__,1,3)));
 
-#endif /* _STRING_H_ */
+#endif
