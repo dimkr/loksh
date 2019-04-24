@@ -1,4 +1,4 @@
-/*	$OpenBSD: sh.h,v 1.73 2018/05/18 13:25:20 benno Exp $	*/
+/*	$OpenBSD: sh.h,v 1.75 2019/02/20 23:59:17 schwarze Exp $	*/
 
 /*
  * Public Domain Bourne/Korn shell
@@ -44,6 +44,7 @@ extern	int	exstat;		/* exit status */
 extern	int	subst_exstat;	/* exit status of last $(..)/`..` */
 extern	const char *safe_prompt; /* safe prompt if PS1 substitution fails */
 extern	char	username[];	/* username for \u prompt expansion */
+extern	int	disable_subst;	/* disable substitution during evaluation */
 
 /*
  * Area-based allocation built on malloc/free
@@ -449,6 +450,7 @@ void	hist_init(Source *);
 void	hist_finish(void);
 void	histsave(int, const char *, int);
 int	c_fc(char **);
+void	c_fc_reset(void);
 void	sethistcontrol(const char *);
 void	sethistsize(int);
 void	sethistfile(const char *);

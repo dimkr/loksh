@@ -1,4 +1,4 @@
-/*	$OpenBSD: mail.c,v 1.24 2018/06/25 15:22:30 cheloha Exp $	*/
+/*	$OpenBSD: mail.c,v 1.27 2019/01/14 08:48:16 schwarze Exp $	*/
 
 /*
  * Mailbox checking code by Robert J. Gibson, adapted for PD ksh by
@@ -47,6 +47,15 @@ mcheck(void)
 	struct stat	 stbuf;
 	static int	 first = 1;
 
+	if (mplist)
+		mbp = mplist;
+	else if ((vp = global("MAIL")) && (vp->flag & ISSET))
+		mbp = &mbox;
+	else
+		mbp = NULL;
+	if (mbp == NULL)
+		return;
+
 	clock_gettime(CLOCK_MONOTONIC, &now);
 	if (first) {
 		mlastchkd = now;
@@ -55,13 +64,6 @@ mcheck(void)
 	timespecsub(&now, &mlastchkd, &elapsed);
 	if (elapsed.tv_sec >= mailcheck_interval) {
 		mlastchkd = now;
-
-		if (mplist)
-			mbp = mplist;
-		else if ((vp = global("MAIL")) && (vp->flag & ISSET))
-			mbp = &mbox;
-		else
-			mbp = NULL;
 
 		while (mbp) {
 			if (mbp->mb_path && stat(mbp->mb_path, &stbuf) == 0 &&
@@ -126,10 +128,10 @@ mpset(char *mptoparse)
 		/* POSIX/bourne-shell say file%message */
 		for (p = mpath; (mmsg = strchr(p, '%')); ) {
 			/* a literal percent? (POSIXism) */
-			if (mmsg[-1] == '\\') {
+			if (mmsg > mpath && mmsg[-1] == '\\') {
 				/* use memmove() to avoid overlap problems */
 				memmove(mmsg - 1, mmsg, strlen(mmsg) + 1);
-				p = mmsg + 1;
+				p = mmsg;
 				continue;
 			}
 			break;
@@ -140,7 +142,11 @@ mpset(char *mptoparse)
 		if (mmsg) {
 			*mmsg = '\0';
 			mmsg++;
+			if (*mmsg == '\0')
+				mmsg = NULL;
 		}
+		if (*mpath == '\0')
+			continue;
 		mbp = mballoc(mpath, mmsg);
 		mbp->mb_next = mplist;
 		mplist = mbp;

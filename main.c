@@ -1,4 +1,4 @@
-/*	$OpenBSD: main.c,v 1.93 2018/09/29 14:13:19 millert Exp $	*/
+/*	$OpenBSD: main.c,v 1.97 2019/02/20 23:59:17 schwarze Exp $	*/
 
 /*
  * startup, main loop, environments and error handling
@@ -35,6 +35,7 @@ uid_t	ksheuid;
 int	exstat;
 int	subst_exstat;
 const char *safe_prompt;
+int	disable_subst;
 
 Area	aperm;
 
@@ -145,10 +146,18 @@ main(int argc, char *argv[])
 
 	kshname = argv[0];
 
-	if (pledge("stdio rpath wpath cpath fattr flock getpw proc exec tty",
-	    NULL) == -1) {
-		perror("pledge");
-		exit(1);
+	if (issetugid()) { /* could later drop privileges */
+		if (pledge("stdio rpath wpath cpath fattr flock getpw proc "
+		    "exec tty id", NULL) == -1) {
+			perror("pledge");
+			exit(1);
+		}
+	} else {
+		if (pledge("stdio rpath wpath cpath fattr flock getpw proc "
+		    "exec tty", NULL) == -1) {
+			perror("pledge");
+			exit(1);
+		}
 	}
 
 	ainit(&aperm);		/* initialize permanent Area */
@@ -549,6 +558,7 @@ shell(Source *volatile s, volatile int toplevel)
 		case LERROR:
 		case LSHELL:
 			if (interactive) {
+				c_fc_reset();
 				if (i == LINTR)
 					shellf("\n");
 				/* Reset any eof that was read as part of a

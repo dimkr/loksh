@@ -1,8 +1,8 @@
-.\"	$OpenBSD: ksh.1,v 1.201 2018/06/18 17:03:58 millert Exp $
+.\"	$OpenBSD: ksh.1,v 1.203 2019/04/03 14:55:12 jca Exp $
 .\"
 .\"	Public Domain
 .\"
-.Dd $Mdocdate: June 18 2018 $
+.Dd $Mdocdate: April 3 2019 $
 .Dt KSH 1
 .Os
 .Sh NAME
@@ -540,7 +540,7 @@ if no
 .Ar list
 is executed, the exit status is zero.
 .It Xo Ic for Ar name
-.Oo Cm in Ar word No ... Oc ;
+.Op Cm in Op Ar word ... ;
 .Cm do Ar list ; Cm done
 .Xc
 For each
@@ -564,10 +564,10 @@ e.g.\&
 The exit status of a
 .Ic for
 statement is the last exit status of
-.Ar list ;
-if
+.Ar list .
+If there are no items,
 .Ar list
-is never executed, the exit status is zero.
+is not executed and the exit status is zero.
 .It Xo Ic if Ar list ;
 .Cm then Ar list ;
 .Oo Cm elif Ar list ;
@@ -4694,7 +4694,7 @@ Moves the cursor to the beginning of the edited input line.
 Uppercase the first character in the next
 .Ar n
 words, leaving the cursor past the end of the last word.
-.It clear-screen:
+.It clear-screen: ^L
 Clears the screen if the
 .Ev TERM
 parameter is set and the terminal supports clearing the screen, then
@@ -4891,7 +4891,7 @@ The last
 word of the previous command is inserted at the cursor.
 .It quote: ^^
 The following character is taken literally rather than as an editing command.
-.It redraw: ^L
+.It redraw:
 Reprints the prompt string and the current input line.
 .It Xo search-character-backward:
 .Op Ar n
