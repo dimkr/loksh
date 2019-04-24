@@ -1,4 +1,4 @@
-/*	$OpenBSD: main.c,v 1.93 2018/09/29 14:13:19 millert Exp $	*/
+/*	$OpenBSD: main.c,v 1.97 2019/02/20 23:59:17 schwarze Exp $	*/
 
 /*
  * startup, main loop, environments and error handling
@@ -39,6 +39,7 @@ uid_t	ksheuid;
 int	exstat;
 int	subst_exstat;
 const char *safe_prompt;
+int	disable_subst;
 
 Area	aperm;
 
@@ -547,6 +548,7 @@ shell(Source *volatile s, volatile int toplevel)
 		case LERROR:
 		case LSHELL:
 			if (interactive) {
+				c_fc_reset();
 				if (i == LINTR)
 					shellf("\n");
 				/* Reset any eof that was read as part of a
