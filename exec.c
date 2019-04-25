@@ -1249,6 +1249,7 @@ do_selectargs(char **ap, bool print_menu)
 	static const char *const read_args[] = {
 		"read", "-r", "REPLY", NULL
 	};
+	const char *errstr;
 	char *s;
 	int i, argct;
 
@@ -1267,8 +1268,10 @@ do_selectargs(char **ap, bool print_menu)
 			return NULL;
 		s = str_val(global("REPLY"));
 		if (*s) {
-			i = atoi(s);
-			return (i >= 1 && i <= argct) ? ap[i - 1] : null;
+			i = strtonum(s, 1, argct, &errstr);
+			if (errstr)
+				return null;
+			return ap[i - 1];
 		}
 		print_menu = 1;
 	}

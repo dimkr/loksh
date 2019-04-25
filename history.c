@@ -721,7 +721,6 @@ history_open(void)
 	struct stat	sb;
 	int		fd, fddup;
 
-//XXX:exclusive lock
 	if ((fd = open(hname, O_RDWR | O_CREAT, 0600)) == -1)
 		return NULL;
 	if (fstat(fd, &sb) == -1 || sb.st_uid != getuid()) {
