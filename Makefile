@@ -35,7 +35,7 @@ install: all
 	install -v -D -m 644 ksh.1 $(DESTDIR)/$(MAN_DIR)/man1/$(BIN_NAME).1
 	install -v -m 644 sh.1 $(DESTDIR)/$(MAN_DIR)/man1/sh.1
 	install -v -D -m 644 README.md $(DESTDIR)/$(DOC_DIR)/README.md
-	install -v -m 644 README.upstream $(DESTDIR)/$(DOC_DIR)/README.upstream
+	install -v -m 644 README $(DESTDIR)/$(DOC_DIR)/README
 	install -v -m 644 CONTRIBUTORS $(DESTDIR)/$(DOC_DIR)/CONTRIBUTORS
 	install -v -m 644 PROJECTS $(DESTDIR)/$(DOC_DIR)/PROJETCS
 	install -v -m 644 LEGAL $(DESTDIR)/$(DOC_DIR)/LEGAL
