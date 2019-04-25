@@ -15,7 +15,7 @@ NCURSES_LDFLAGS = $(shell pkg-config --libs ncurses)
 OBJECTS = alloc.o c_ksh.o c_sh.o c_test.o c_ulimit.o edit.o emacs.o eval.o \
           exec.o expr.o history.o io.o jobs.o lex.o mail.o main.o misc.o \
           path.o shf.o syn.o table.o trap.o tree.o tty.o var.o version.o vi.o \
-          vis.o unvis.o strlcpy.o strlcat.o reallocarray.o
+          vis.o unvis.o strlcpy.o strlcat.o reallocarray.o strtonum.o
 HEADERS = c_test.h charclass.h config.h edit.h expand.h ksh_limval.h lex.h \
           proto.h sh.h shf.h table.h tree.h tty.h
 
