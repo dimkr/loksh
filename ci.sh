@@ -12,5 +12,5 @@ if [ "`readlink /proc/$$/exe`" != /tmp/ksh ]
 then
 	cp -f ksh /tmp/
 	make clean
-	exec /tmp/ksh $0
+	exec /tmp/ksh -xe $0
 fi
