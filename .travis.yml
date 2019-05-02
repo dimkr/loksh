@@ -4,4 +4,4 @@ services:
   - docker
 
 script:
-  - docker run -e CI -w /root/loksh -v `pwd`:/root/loksh dimkr/c-dev:latest ./ci.sh
+  - docker run -e CI -w /root/loksh -v `pwd`:/root/loksh dimkr/loksh:latest ./ci.sh
