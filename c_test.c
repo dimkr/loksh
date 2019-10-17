@@ -1,4 +1,4 @@
-/*	$OpenBSD: c_test.c,v 1.25 2018/04/09 17:53:36 tobias Exp $	*/
+/*	$OpenBSD: c_test.c,v 1.27 2019/06/28 13:34:59 deraadt Exp $	*/
 
 /*
  * test(1); version 7-like  --  author Erik Baalbergen
@@ -32,8 +32,7 @@
 			   "-L"|"-h"|"-S"|"-H";
 
 	binary-operator ::= "="|"=="|"!="|"-eq"|"-ne"|"-ge"|"-gt"|"-le"|"-lt"|
-			    "-nt"|"-ot"|"-ef"|
-			    "<"|">"	# rules used for [[ .. ]] expressions
+			    "-nt"|"-ot"|"-ef"|"<"|">"
 			    ;
 	operand ::= <any thing>
 */
@@ -195,9 +194,7 @@ test_isop(Test_env *te, Test_meta meta, const char *s)
 		sc1 = s[1];
 		for (; otab->op_text[0]; otab++)
 			if (sc1 == otab->op_text[1] &&
-			    strcmp(s, otab->op_text) == 0 &&
-			    ((te->flags & TEF_DBRACKET) ||
-			    (otab->op_num != TO_STLT && otab->op_num != TO_STGT)))
+			    strcmp(s, otab->op_text) == 0)
 				return otab->op_num;
 	}
 	return TO_NONOP;
@@ -374,7 +371,7 @@ test_eaccess(const char *path, int amode)
 	if (res == 0 && ksheuid == 0 && (amode & X_OK)) {
 		struct stat statb;
 
-		if (stat(path, &statb) < 0)
+		if (stat(path, &statb) == -1)
 			res = -1;
 		else if (S_ISDIR(statb.st_mode))
 			res = 0;

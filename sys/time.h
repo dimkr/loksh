@@ -1,7 +1,4 @@
-#ifndef _COMPAT_SYS_TIME_H_
-#define _COMPAT_SYS_TIME_H_
-
-/*	$OpenBSD: time.h,v 1.40 2019/01/19 01:53:44 cheloha Exp $	*/
+/*	$OpenBSD: time.h,v 1.46 2019/08/03 22:53:45 cheloha Exp $	*/
 /*	$NetBSD: time.h,v 1.18 1996/04/23 10:29:33 mycroft Exp $	*/
 
 /*
@@ -34,6 +31,9 @@
  *
  *	@(#)time.h	8.2 (Berkeley) 7/10/94
  */
+
+#ifndef _SYS_TIME_H_
+#define _SYS_TIME_H_
 
 /* Operations on timevals. */
 #define	timerclear(tvp)		(tvp)->tv_sec = (tvp)->tv_usec = 0
@@ -76,4 +76,4 @@
 		}							\
 	} while (0)
 
-#endif
+#endif /* !_SYS_TIME_H_ */
