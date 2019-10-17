@@ -1,4 +1,4 @@
-/*	$OpenBSD: io.c,v 1.36 2018/01/16 22:52:32 jca Exp $	*/
+/*	$OpenBSD: io.c,v 1.38 2019/07/24 14:33:16 bcallah Exp $	*/
 
 /*
  * shell buffered IO and formatted output
@@ -9,6 +9,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -243,7 +244,7 @@ ksh_dup2(int ofd, int nfd, int errok)
 {
 	int ret = dup2(ofd, nfd);
 
-	if (ret < 0 && errno != EBADF && !errok)
+	if (ret == -1 && errno != EBADF && !errok)
 		errorf("too many files open in shell");
 
 	return ret;
@@ -260,7 +261,7 @@ savefd(int fd)
 
 	if (fd < FDBASE) {
 		nfd = fcntl(fd, F_DUPFD_CLOEXEC, FDBASE);
-		if (nfd < 0) {
+		if (nfd == -1) {
 			if (errno == EBADF)
 				return -1;
 			else
@@ -291,7 +292,7 @@ openpipe(int *pv)
 {
 	int lpv[2];
 
-	if (pipe(lpv) < 0)
+	if (pipe(lpv) == -1)
 		errorf("can't create pipe - try again");
 	pv[0] = savefd(lpv[0]);
 	if (pv[0] != lpv[0])
@@ -318,7 +319,7 @@ check_fd(char *name, int mode, const char **emsgp)
 
 	if (isdigit((unsigned char)name[0]) && !name[1]) {
 		fd = name[0] - '0';
-		if ((fl = fcntl(fd, F_GETFL)) < 0) {
+		if ((fl = fcntl(fd, F_GETFL)) == -1) {
 			if (emsgp)
 				*emsgp = "bad file descriptor";
 			return -1;
