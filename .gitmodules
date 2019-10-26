@@ -1,0 +1,3 @@
+[submodule "subprojects/lolibc"]
+	path = subprojects/lolibc
+	url = https://github.com/dimkr/lolibc
