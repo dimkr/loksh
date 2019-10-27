@@ -2,8 +2,6 @@
 
 /* $From: table.h,v 1.3 1994/05/31 13:34:34 michael Exp $ */
 
-#include <inttypes.h>
-
 /*
  * generic hashed associative table for commands and variables.
  */

@@ -12,11 +12,8 @@
  *		things.
  */
 
-#include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/time.h>
 #include <sys/uio.h>
-#include <sys/file.h>
 
 #include <errno.h>
 #include <fcntl.h>
@@ -25,7 +22,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <vis.h>
-#include <inttypes.h>
 
 #include "sh.h"
 
@@ -721,7 +717,7 @@ history_open(void)
 	struct stat	sb;
 	int		fd, fddup;
 
-	if ((fd = open(hname, O_RDWR | O_CREAT, 0600)) == -1)
+	if ((fd = open(hname, O_RDWR | O_CREAT | O_EXLOCK, 0600)) == -1)
 		return NULL;
 	if (fstat(fd, &sb) == -1 || sb.st_uid != getuid()) {
 		close(fd);

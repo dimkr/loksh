@@ -6,8 +6,6 @@
 
 /* $From: lex.h,v 1.4 1994/05/31 13:34:34 michael Exp $ */
 
-#include <inttypes.h>
-
 #define	IDENT	64
 
 typedef struct source Source;

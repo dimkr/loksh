@@ -15,9 +15,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <signal.h>
-#include <time.h>
 #include <stdbool.h>
-#include <fcntl.h>
 
 /* end of common headers */
 

@@ -11,8 +11,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <grp.h>
-#include <sys/auxv.h>
 
 #include "sh.h"
 #include "charclass.h"
@@ -293,7 +291,7 @@ change_flag(enum sh_flag f,
 		}
 	} else
 	/* Turning off -p? */
-	if (f == FPRIVILEGED && oldval && !newval && getauxval(AT_SECURE) &&
+	if (f == FPRIVILEGED && oldval && !newval && issetugid() &&
 	    !dropped_privileges) {
 		gid_t gid = getgid();
 
@@ -301,6 +299,9 @@ change_flag(enum sh_flag f,
 		setgroups(1, &gid);
 		setresuid(ksheuid, ksheuid, ksheuid);
 
+		if (pledge("stdio rpath wpath cpath fattr flock getpw proc "
+		    "exec tty", NULL) == -1)
+			bi_errorf("pledge fail");
 		dropped_privileges = 1;
 	} else if (f == FPOSIX && newval) {
 		Flag(FBRACEEXPAND) = 0;

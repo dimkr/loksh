@@ -15,7 +15,6 @@
  *
  */
 
-#include <sys/types.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -149,11 +148,7 @@ static int		kill_job(Job *, int);
 void
 j_init(int mflagset)
 {
-#ifdef CHILD_MAX
 	child_max = CHILD_MAX; /* so syscon() isn't always being called */
-#else
-	child_max = sysconf(_SC_CHILD_MAX);
-#endif
 
 	sigemptyset(&sm_default);
 	sigprocmask(SIG_SETMASK, &sm_default, NULL);
