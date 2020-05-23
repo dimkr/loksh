@@ -7,8 +7,9 @@ script:
   - docker run -e CI -w /root/loksh -v `pwd`:/root/loksh dimkr/loksh:latest ./ci.sh
 
 before_deploy:
-  - sudo rm -rf build build-* .travis.yml .git .gitmodules subprojects/lolibc/.travis.yml subprojects/lolibc/.git
+  - sudo rm -rf build build-*
   - cp -r . /tmp/loksh
+  - rm -rf /tmp/loksh/travis.yml /tmp/loksh/.git /tmp/loksh/.gitmodules /tmp/loksh/subprojects/lolibc/.travis.yml /tmp/loksh/subprojects/lolibc/.git
   - tar -c /tmp/loksh | xz -9 > src.tar.xz
 
 deploy:
