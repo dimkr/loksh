@@ -9,7 +9,7 @@ script:
 before_deploy:
   - sudo rm -rf build build-* .travis.yml .git .gitmodules subprojects/lolibc/.travis.yml subprojects/lolibc/.git
   - cp -r . /tmp/loksh
-  - tar -C /tmp/loksh | xz -9 > src.tar.xz
+  - tar -c /tmp/loksh | xz -9 > src.tar.xz
 
 deploy:
   provider: releases
