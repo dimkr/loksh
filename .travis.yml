@@ -18,6 +18,7 @@ deploy:
   file: src.tar.xz
   on:
     repo: dimkr/loksh
+    all_branches: true
   skip_cleanup: true
   draft: true
   overwrite: true
