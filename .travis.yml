@@ -11,7 +11,8 @@ before_deploy:
   - cp -r . /tmp/loksh
   - rm -rf /tmp/loksh/.travis.yml /tmp/loksh/Dockerfile /tmp/loksh/ci.sh /tmp/loksh/.git /tmp/loksh/.gitmodules /tmp/loksh/subprojects/lolibc/ci.sh /tmp/loksh/subprojects/lolibc/.travis.yml /tmp/loksh/subprojects/lolibc/.git
   - tar -C /tmp -c loksh | xz -9 > src.tar.xz
-  - cp -f src.tar.xz loksh-$TRAVIS_TAG.tar.xz
+  - mv /tmp/loksh /tmp/loksh-$TRAVIS_TAG
+  - tar -C /tmp -c loksh-$TRAVIS_TAG | xz -9 > loksh-$TRAVIS_TAG.tar.xz
 
 deploy:
   provider: releases
