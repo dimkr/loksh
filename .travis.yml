@@ -11,14 +11,15 @@ before_deploy:
   - cp -r . /tmp/loksh
   - rm -rf /tmp/loksh/.travis.yml /tmp/loksh/Dockerfile /tmp/loksh/ci.sh /tmp/loksh/.git /tmp/loksh/.gitmodules /tmp/loksh/subprojects/lolibc/ci.sh /tmp/loksh/subprojects/lolibc/.travis.yml /tmp/loksh/subprojects/lolibc/.git
   - tar -C /tmp -c loksh | xz -9 > src.tar.xz
-  - [ -z "$TRAVIS_TAG" ] || cp -f src.tar.xz loksh-$TRAVIS_TAG.tar.xz
+  - cp -f src.tar.xz loksh-$TRAVIS_TAG.tar.xz
 
 deploy:
   provider: releases
   api_key:
     secure: zYBevvg/6Tl+F1xr+GpCZRw11Yw6ePkZxIFrLckHgupxJ1etiF91IKaiO4jHJnSwWag0nEpWBJImZ4YSn6EyWt0ONBPuZYYsucfXhv5qLn0cG7KhF0ak6JGOP8rA2ZCbOSqUyeR2Wvj7mN/NQ6e59Tbr59d3xTCpy1fvvRajUGqoRHBHAVyPHDGulsCQWjyoP6YdiojEB/+yyC6YlZYGYF2j+/RMwkdKsaKiLtSUj90qTm99+gcQ9SMWVAwCmxjd5sJdAmDCl+GIEhIX0xB+uNdxasD3QV+pJiKyyx8CZyHhknnCs4akX9bSeNG4RgERV4LM0cPT0ly5oWAwCky/Lqh7cmAorC7OeVCsFFX5NqwiWdRRyzmw7dr/OnZws3vnD6WFb/V84nZjfX5rko4kWsjPJARdmo9QY90IANdEKVxBKobS+4G/zKXjZCWx+mJsM2v9SgG2oUTgxWLSTgTwRIqJ9pbfI/+O1AqLlKLw80K0I29SXq9+zDUAPdz7S0N76UK5b82eDmgv2GfHQfCe2IzdlqSWy6vqmlPUxTHvxH8Atk31vr5agSpItCz+jdMoDT/x5YzBin9nrqQAbe2yhTK62qVHnTpkN7SVM9SV6fIIO0lHK2f1SbC+gljLpBzuriEEGV7MwUjkpfBqNsinZo8CMtlA8sTuSswR+3tR5Zk=
-  file_glob: true
-  file: *.tar.xz
+  file:
+    - src.tar.xz
+    - loksh-$TRAVIS_TAG.tar.xz
   on:
     repo: dimkr/loksh
     all_branches: true
