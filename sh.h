@@ -499,6 +499,7 @@ void	coproc_cleanup(int);
 struct temp *maketemp(Area *, Temp_type, struct temp **);
 /* jobs.c */
 void	j_init(int);
+void	j_suspend(void);
 void	j_exit(void);
 void	j_change(void);
 int	exchild(struct op *, int, volatile int *, int);

@@ -188,6 +188,57 @@ j_init(int mflagset)
 		tty_init(true);
 }
 
+/* suspend the shell */
+void
+j_suspend(void)
+{
+	struct sigaction sa, osa;
+
+	/* Restore tty and pgrp. */
+	if (ttypgrp_ok) {
+		tcsetattr(tty_fd, TCSADRAIN, &tty_state);
+		if (restore_ttypgrp >= 0) {
+			if (tcsetpgrp(tty_fd, restore_ttypgrp) == -1) {
+				warningf(false, "%s: tcsetpgrp() failed: %s",
+				    __func__, strerror(errno));
+			} else {
+				if (setpgid(0, restore_ttypgrp) == -1) {
+					warningf(false,
+					    "%s: setpgid() failed: %s",
+					    __func__, strerror(errno));
+				}
+			}
+		}
+	}
+
+	/* Suspend the shell. */
+	memset(&sa, 0, sizeof(sa));
+	sigemptyset(&sa.sa_mask);
+	sa.sa_handler = SIG_DFL;
+	sigaction(SIGTSTP, &sa, &osa);
+	kill(0, SIGTSTP);
+
+	/* Back from suspend, reset signals, pgrp and tty. */
+	sigaction(SIGTSTP, &osa, NULL);
+	if (ttypgrp_ok) {
+		if (restore_ttypgrp >= 0) {
+			if (setpgid(0, kshpid) == -1) {
+				warningf(false, "%s: setpgid() failed: %s",
+				    __func__, strerror(errno));
+				ttypgrp_ok = 0;
+			} else {
+				if (tcsetpgrp(tty_fd, kshpid) == -1) {
+					warningf(false,
+					    "%s: tcsetpgrp() failed: %s",
+					    __func__, strerror(errno));
+					ttypgrp_ok = 0;
+				}
+			}
+		}
+		tty_init(true);
+	}
+}
+
 /* job cleanup before shell exit */
 void
 j_exit(void)
