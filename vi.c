@@ -14,11 +14,10 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/ttydefaults.h>
 #ifndef SMALL
 # include <term.h>
 # include <curses.h>
-#else
-#  include <sys/ttydefaults.h>
 #endif
 
 #include "sh.h"
