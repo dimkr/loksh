@@ -6,7 +6,7 @@
 |_|\___/|_|\_\___/_| |_|
 ```
 
-[![Build Status](https://travis-ci.org/dimkr/loksh.svg?branch=master)](https://travis-ci.org/dimkr/loksh)
+[![Build Status](https://github.com/dimkr/loksh/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/dimkr/loksh/actions)
 
 ## Overview
 

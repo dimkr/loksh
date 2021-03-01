@@ -1,0 +1,61 @@
+name: build
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 0 * * 4'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag'
+        required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: ci.sh
+        run: docker run -e CI -w /root/loksh -v `pwd`:/root/loksh dimkr/loksh:latest ./ci.sh
+      - name: Cleanup
+        run: docker run -e CI -w /root/loksh -v `pwd`:/root/loksh dimkr/loksh:latest ./ci.sh
+          sudo rm -rf build build-* dst
+          cp -r . /tmp/loksh
+          rm -rf /tmp/loksh/.travis.yml /tmp/loksh/Dockerfile /tmp/loksh/ci.sh /tmp/loksh/.git /tmp/loksh/.gitmodules /tmp/loksh/subprojects/lolibc/ci.sh 
+          /tmp/loksh/subprojects/lolibc/.travis.yml /tmp/loksh/subprojects/lolibc/.git
+          tar -C /tmp -c loksh | xz -9 > src.tar.xz
+          mv /tmp/loksh /tmp/loksh-${{ github.event.inputs.tag }}
+          tar -C /tmp -c loksh-${{ github.event.inputs.tag }} | xz -9 > loksh-${{ github.event.inputs.tag }}.tar.xz
+      - name: Cleanup
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          sudo rm -rf build build-* dst
+          cp -r . /tmp/loksh
+          rm -rf /tmp/loksh/.travis.yml /tmp/loksh/Dockerfile /tmp/loksh/ci.sh /tmp/loksh/.git /tmp/loksh/.gitmodules /tmp/loksh/subprojects/lolibc/ci.sh 
+          /tmp/loksh/subprojects/lolibc/.travis.yml /tmp/loksh/subprojects/lolibc/.git
+          tar -C /tmp -c loksh | xz -9 > src.tar.xz
+          mv /tmp/loksh /tmp/loksh-${{ github.event.inputs.tag }}
+          tar -C /tmp -c loksh-${{ github.event.inputs.tag }} | xz -9 > loksh-${{ github.event.inputs.tag }}.tar.xz
+      - name: Create release
+        if: github.event_name == 'workflow_dispatch'
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.event.inputs.tag }}
+          release_name: v${{ github.run_number }}
+          draft: false
+          prerelease: false
+      - name: Upload source tarball
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: loksh-${{ github.event.inputs.tag }}.tar.xz
+          asset_name: loksh-${{ github.event.inputs.tag }}.tar.xz
+          asset_content_type: application/octet-stream
