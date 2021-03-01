@@ -20,7 +20,8 @@ jobs:
       - name: ci.sh
         run: docker run -e CI -w /root/loksh -v `pwd`:/root/loksh dimkr/loksh:latest ./ci.sh
       - name: Cleanup
-        run: docker run -e CI -w /root/loksh -v `pwd`:/root/loksh dimkr/loksh:latest ./ci.sh
+        if: github.event_name == 'workflow_dispatch'
+        run: |
           sudo rm -rf build build-* dst
           cp -r . /tmp/loksh
           rm -rf /tmp/loksh/.travis.yml /tmp/loksh/Dockerfile /tmp/loksh/ci.sh /tmp/loksh/.git /tmp/loksh/.gitmodules /tmp/loksh/subprojects/lolibc/ci.sh 
