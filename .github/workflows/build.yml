@@ -24,18 +24,7 @@ jobs:
         run: |
           sudo rm -rf build build-* dst
           cp -r . /tmp/loksh
-          rm -rf /tmp/loksh/.travis.yml /tmp/loksh/Dockerfile /tmp/loksh/ci.sh /tmp/loksh/.git /tmp/loksh/.gitmodules /tmp/loksh/subprojects/lolibc/ci.sh 
-          /tmp/loksh/subprojects/lolibc/.travis.yml /tmp/loksh/subprojects/lolibc/.git
-          tar -C /tmp -c loksh | xz -9 > src.tar.xz
-          mv /tmp/loksh /tmp/loksh-${{ github.event.inputs.tag }}
-          tar -C /tmp -c loksh-${{ github.event.inputs.tag }} | xz -9 > loksh-${{ github.event.inputs.tag }}.tar.xz
-      - name: Cleanup
-        if: github.event_name == 'workflow_dispatch'
-        run: |
-          sudo rm -rf build build-* dst
-          cp -r . /tmp/loksh
-          rm -rf /tmp/loksh/.travis.yml /tmp/loksh/Dockerfile /tmp/loksh/ci.sh /tmp/loksh/.git /tmp/loksh/.gitmodules /tmp/loksh/subprojects/lolibc/ci.sh 
-          /tmp/loksh/subprojects/lolibc/.travis.yml /tmp/loksh/subprojects/lolibc/.git
+          rm -rf /tmp/loksh/.github /tmp/loksh/Dockerfile /tmp/loksh/ci.sh /tmp/loksh/.git /tmp/loksh/.gitmodules /tmp/loksh/subprojects/lolibc/ci.sh /tmp/loksh/subprojects/lolibc/.github /tmp/loksh/subprojects/lolibc/.git
           tar -C /tmp -c loksh | xz -9 > src.tar.xz
           mv /tmp/loksh /tmp/loksh-${{ github.event.inputs.tag }}
           tar -C /tmp -c loksh-${{ github.event.inputs.tag }} | xz -9 > loksh-${{ github.event.inputs.tag }}.tar.xz
