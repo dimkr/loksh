@@ -1,4 +1,4 @@
-project('loksh', 'c', version: '6.8')
+project('loksh', 'c', version: '6.9')
 
 lolibc = subproject('lolibc')
 
