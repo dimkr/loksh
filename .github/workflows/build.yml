@@ -18,7 +18,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: ci.sh
-        run: docker run -e CI -w /root/loksh -v `pwd`:/root/loksh dimkr/loksh:latest ./ci.sh
+        run: docker run -e CI -w /root/loksh -v `pwd`:/root/loksh ghcr.io/dimkr/loksh/ci-container:latest ./ci.sh
       - name: Cleanup
         if: github.event_name == 'workflow_dispatch'
         run: |
