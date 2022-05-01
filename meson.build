@@ -6,6 +6,9 @@ c_args = ['-D_GNU_SOURCE', '-DEMACS', '-DVI', '-Wno-format-security', '-Wno-poin
 deps = []
 
 ncurses = dependency('ncurses', required: false)
+if not ncurses.found()
+	ncurses = dependency('ncursesw', required: false)
+endif
 if ncurses.found()
 	deps += [ncurses]
 else
