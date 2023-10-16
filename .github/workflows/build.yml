@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: ci.sh
         run: docker run -e CI -w /root/loksh -v `pwd`:/root/loksh ghcr.io/dimkr/loksh/ci-container:latest ./ci.sh
       - name: Cleanup
@@ -31,21 +31,8 @@ jobs:
       - name: Create release
         if: github.event_name == 'workflow_dispatch'
         id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v1
         with:
+          name: ${{ github.event.inputs.tag }}
           tag_name: ${{ github.event.inputs.tag }}
-          release_name: ${{ github.event.inputs.tag }}
-          draft: false
-          prerelease: false
-      - name: Upload source tarball
-        if: github.event_name == 'workflow_dispatch'
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: loksh-${{ github.event.inputs.tag }}.tar.xz
-          asset_name: loksh-${{ github.event.inputs.tag }}.tar.xz
-          asset_content_type: application/octet-stream
+          files: loksh-${{ github.event.inputs.tag }}.tar.xz
